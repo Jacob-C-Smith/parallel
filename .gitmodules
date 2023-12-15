@@ -10,3 +10,12 @@
 [submodule "extern/array"]
 	path = extern/array
 	url = https://github.com/Jacob-C-Smith/array
+[submodule "extern/log"]
+	path = extern/log
+	url = https://github.com/Jacob-C-Smith/log
+[submodule "extern/crypto"]
+	path = extern/crypto
+	url = https://github.com/Jacob-C-Smith/crypto
+[submodule "extern/queue"]
+	path = extern/queue
+	url = https://github.com/Jacob-C-Smith/queue
