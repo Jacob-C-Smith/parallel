@@ -151,7 +151,7 @@ int parallel_thread_pool_example ( int argc, const char *argv[] )
     if ( thread_pool_construct(&p_thread_pool, 8, print_something_to_standard_out) == 0 ) goto failed_to_construct_thread_pool;
 
     // Enqueue some tasks
-    for (size_t i = 1; i < 15; i++) thread_pool_enqueue(p_thread_pool, i);
+    // for (size_t i = 1; i < 15; i++) thread_pool_enqueue(p_thread_pool, i);
 
     p_thread_pool->running = 1;
 
@@ -190,7 +190,7 @@ void print_something_to_standard_out ( void *p_parameter )
     //sleep(rand() % 2);
 
     // Print the parameter to standard out
-    printf("%d\n", p_parameter);
+    // printf("%d\n", p_parameter);
 
     // Flush standard out
     fflush(stdout);
