@@ -190,7 +190,7 @@ void print_something_to_standard_out ( void *p_parameter )
     //sleep(rand() % 2);
 
     // Print the parameter to standard out
-    printf("%d\n", p_parameter);
+    // printf("%d\n", p_parameter);
 
     // Flush standard out
     fflush(stdout);
