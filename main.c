@@ -1,12 +1,26 @@
+/** !
+ * Example parallel program
+ * 
+ * @file main.c
+ * 
+ * @author Jacob Smith
+ */
+
 // Standard library
 #include <stdio.h>
 #include <stdlib.h>
+
+// log
+#include <log/log.h>
 
 // parallel
 #include <parallel/parallel.h>
 #include <parallel/thread.h>
 #include <parallel/thread_pool.h>
 #include <parallel/schedule.h>
+
+// Preprocessor defines
+#define PARALLEL_THREADS_QUANTITY 4
 
 // Forward declarations
 /** !
@@ -40,7 +54,7 @@ int parallel_thread_pool_example ( int argc, const char *argv[] );
 int parallel_schedule_example ( int argc, const char *argv[] );
 
 /** !
- * Print the parameter to standard out
+ * Delay for [0 - 4] seconds, then print the parameter to standard out
  * 
  * @param p_parameter the parameter
  * 
@@ -54,6 +68,9 @@ int main ( int argc, const char *argv[] )
 
     // Initialize parallel
     if ( parallel_init() == 0 ) goto failed_to_initialize_parallel;
+
+    // Seed the random number generator
+    srand(time(NULL));
 
     // TODO: Add tasks for scheduler
     //
@@ -103,41 +120,44 @@ int parallel_thread_example ( int argc, const char *argv[] )
 {
     
     // Initialized data
-    parallel_thread *p_parallel_thread1 = 0,
-                    *p_parallel_thread2 = 0,
-                    *p_parallel_thread3 = 0;
+    parallel_thread *_p_parallel_threads[PARALLEL_THREADS_QUANTITY] = { 0 };
 
     // Start some threads
-    if ( parallel_thread_start(&p_parallel_thread1, print_something_to_standard_out, 1) == 0 ) goto failed_to_start_thread;
-    if ( parallel_thread_start(&p_parallel_thread2, print_something_to_standard_out, 2) == 0 ) goto failed_to_start_thread;
-    if ( parallel_thread_start(&p_parallel_thread3, print_something_to_standard_out, 3) == 0 ) goto failed_to_start_thread;
+    for (size_t i = 0; i < PARALLEL_THREADS_QUANTITY; i++)
+
+        // Start a thread
+        if ( parallel_thread_start(&_p_parallel_threads[i], print_something_to_standard_out, i) == 0 ) goto failed_to_start_thread;
 
     // Wait for the threads to finish
-    if ( parallel_thread_join(&p_parallel_thread1) == 0 ) goto failed_to_join_thread;
-    if ( parallel_thread_join(&p_parallel_thread2) == 0 ) goto failed_to_join_thread;
-    if ( parallel_thread_join(&p_parallel_thread3) == 0 ) goto failed_to_join_thread;
+    for (size_t i = 0; i < PARALLEL_THREADS_QUANTITY; i++)
 
+        // Wait for the threads to finish
+        if ( parallel_thread_join(&_p_parallel_threads[i]) == 0 ) goto failed_to_join_thread;
+    
     // Success
     return 1;
 
     // Error handling
     {
 
-        failed_to_start_thread:
+        // Parallel errors
+        {
+            failed_to_start_thread:
 
-            // Write an error message to standard out
-            printf("Failed to create parallel thread in call to function \"%s\"\n", __FUNCTION__);
+                // Write an error message to standard out
+                log_error("Failed to create parallel thread in call to function \"%s\"\n", __FUNCTION__);
 
-            // Error
-            return 0;
+                // Error
+                return 0;
 
-        failed_to_join_thread:
-            
-            // Write an error message to standard out
-            printf("Failed to join parallel thread in call to function \"%s\"\n", __FUNCTION__);
+            failed_to_join_thread:
+                
+                // Write an error message to standard out
+                log_error("Failed to join parallel thread in call to function \"%s\"\n", __FUNCTION__);
 
-            // Error
-            return 0;
+                // Error
+                return 0;
+        }
     }
 }
 
@@ -168,7 +188,7 @@ int parallel_thread_pool_example ( int argc, const char *argv[] )
             failed_to_construct_thread_pool:
                 
                 // Write an error message to standard out
-                printf("Failed to construct thread pool!\n");
+                log_error("Failed to construct thread pool!\n");
 
                 // Error
                 return 0;
@@ -186,11 +206,14 @@ int parallel_schedule_example ( int argc, const char *argv[] )
 void print_something_to_standard_out ( void *p_parameter )
 {
 
+    // Initialized data
+    int delay = rand() % 5;
+
     // Sleep for 0-4 seconds
-    //sleep(rand() % 2);
+    sleep(delay);
 
     // Print the parameter to standard out
-    // printf("%d\n", p_parameter);
+    printf("[parallel] [thread] %d finished in %d seconds\n", p_parameter, delay);
 
     // Flush standard out
     fflush(stdout);
