@@ -44,11 +44,11 @@ struct thread_pool_s
  * 
  * @return 1 on success, 0 on error
  */
-int thread_pool_create ( thread_pool **pp_thread_pool );
+DLLEXPORT int thread_pool_create ( thread_pool **pp_thread_pool );
 
-int thread_pool_construct ( thread_pool **pp_thread_pool, int thread_quantity, int (*pfn_task)(void *job) );
+DLLEXPORT int thread_pool_construct ( thread_pool **pp_thread_pool, int thread_quantity, int (*pfn_task)(void *job) );
 
-int thread_pool_enqueue ( thread_pool *p_thread_pool, void *job );
+DLLEXPORT int thread_pool_enqueue ( thread_pool *p_thread_pool, void *job );
 
 /** !
  * Destroy a thread pool
@@ -57,4 +57,4 @@ int thread_pool_enqueue ( thread_pool *p_thread_pool, void *job );
  * 
  * @return 1 on success, 0 on error
 */
-int thread_pool_destroy ( thread_pool **pp_thread_pool );
+DLLEXPORT int thread_pool_destroy ( thread_pool **pp_thread_pool );
