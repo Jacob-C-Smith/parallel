@@ -90,4 +90,4 @@ DLLEXPORT int parallel_thread_join ( parallel_thread **pp_parallel_thread );
  *
  * @return 1 on success, 0 on error
  */
-int parallel_thread_destory ( parallel_thread **pp_parallel_thread );
+DLLEXPORT int parallel_thread_destory ( parallel_thread **pp_parallel_thread );
