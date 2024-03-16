@@ -99,7 +99,7 @@ endif ()
 # Add source to this project's executable.
 add_executable (parallel_example "main.c")
 add_dependencies(parallel_example log crypto json array dict sync)
-target_include_directories(parallel_example PUBLIC ${PARALLEL_INCLUDE_DIR} ${QUEUE_INCLUDE_DIR} ${ARRAY_INCLUDE_DIR} ${DICT_INCLUDE_DIR} ${SYNCL_INCLUDE_DIR} ${LOG_INCLUDE_DIR} ${CRYPTO_INCLUDE_DIR})
+target_include_directories(parallel_example PUBLIC ${PARALLEL_INCLUDE_DIR} ${QUEUE_INCLUDE_DIR} ${ARRAY_INCLUDE_DIR} ${DICT_INCLUDE_DIR} ${SYNC_INCLUDE_DIR} ${LOG_INCLUDE_DIR} ${CRYPTO_INCLUDE_DIR})
 target_link_libraries(parallel_example queue log crypto parallel json array dict sync)
 
 ## Add source to the tester
@@ -109,7 +109,7 @@ target_link_libraries(parallel_example queue log crypto parallel json array dict
 #target_link_libraries(parallel_test parallel json array dict sync)
 
 # Add source to this project's library
-add_library (parallel SHARED "parallel.c" "thread.c" "thread_pool.c")
+add_library (parallel SHARED "parallel.c" "thread.c" "thread_pool.c" "schedule.c")
 add_dependencies(parallel log crypto json array dict sync)
-target_include_directories(parallel PUBLIC ${PARALLEL_INCLUDE_DIR} ${QUEUE_INCLUDE_DIR} ${ARRAY_INCLUDE_DIR} ${DICT_INCLUDE_DIR} ${SYNCL_INCLUDE_DIR} ${LOG_INCLUDE_DIR} ${CRYPTO_INCLUDE_DIR})
+target_include_directories(parallel PUBLIC ${PARALLEL_INCLUDE_DIR} ${QUEUE_INCLUDE_DIR} ${ARRAY_INCLUDE_DIR} ${DICT_INCLUDE_DIR} ${SYNC_INCLUDE_DIR} ${LOG_INCLUDE_DIR} ${CRYPTO_INCLUDE_DIR})
 target_link_libraries(parallel PRIVATE queue log crypto json array dict sync)
