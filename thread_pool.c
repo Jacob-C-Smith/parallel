@@ -1,9 +1,9 @@
 /** !
- * @file thread_pool.c
- * 
- * @author Jacob Smith
- *
  * Thread pool implementation
+ * 
+ * @file thread_pool.c
+ *
+ * @author Jacob Smith
  */
 
 // parallel

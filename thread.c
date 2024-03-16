@@ -1,9 +1,9 @@
 /** !
- * @file thread.c
- * 
- * @author Jacob Smith
- *
  * High level abstraction of a thread
+ * 
+ * @file thread.c
+ *
+ * @author Jacob Smith
  */
 
 // parallel

@@ -1,9 +1,9 @@
 /** !
- * @file parallel.c
- * 
- * @author Jacob Smith
- *
  * High level abstractions for parallelized computing
+ * 
+ * @file parallel.c
+ *
+ * @author Jacob Smith
  */
 
 // parallel
