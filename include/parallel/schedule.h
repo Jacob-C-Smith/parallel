@@ -26,12 +26,14 @@
 
 // parallel
 #include <parallel/parallel.h>
+#include <parallel/thread.h>
 
 // Forward declarations
 struct parallel_schedule_s;
 
 // Type definitions
 typedef struct parallel_schedule_s parallel_schedule;
+typedef void (fn_scheduler_task)(void *p_parameter);
 
 // Function declarations
 /** !
@@ -41,11 +43,27 @@ typedef struct parallel_schedule_s parallel_schedule;
  * 
  * @return 1 on success, 0 on error
 */
-DLLEXPORT int parallel_schedule_create ( parallel_schedule **pp_schedule );
+DLLEXPORT int parallel_schedule_create ( parallel_schedule **const pp_schedule );
 
-DLLEXPORT int parallel_schedule_load ( parallel_schedule **pp_schedule, char *path );
+/** !
+ * Construct a schedule from a file 
+ * 
+ * @param pp_schedule return
+ * @param path        path to the file
+ * 
+ * @return 1 on success, 0 on error 
+*/
+DLLEXPORT int parallel_schedule_load ( parallel_schedule **const pp_schedule, const char *const path );
 
-DLLEXPORT int parallel_schedule_load_as_json_text ( parallel_schedule **pp_schedule, char *text );
+/** !
+ * Construct a schedule from json text 
+ * 
+ * @param pp_schedule return
+ * @param text        the json text
+ * 
+ * @return 1 on success, 0 on error 
+*/
+DLLEXPORT int parallel_schedule_load_as_json_text ( parallel_schedule **const pp_schedule, const char *const text );
 
 /** !
  * Construct a schedule from a json value
@@ -58,7 +76,7 @@ DLLEXPORT int parallel_schedule_load_as_json_text ( parallel_schedule **pp_sched
  * 
  * @return 1 on success, 0 on error
 */
-DLLEXPORT int parallel_schedule_load_as_json_value ( parallel_schedule **pp_schedule, json_value *p_value );
+DLLEXPORT int parallel_schedule_load_as_json_value ( parallel_schedule **const pp_schedule, const json_value *const p_value );
 
 /** !
  * Start running a schedule
@@ -69,7 +87,7 @@ DLLEXPORT int parallel_schedule_load_as_json_value ( parallel_schedule **pp_sche
  *
  * @return 1 on success, 0 on error
  */
-DLLEXPORT int parallel_schedule_start ( parallel_schedule *p_schedule );
+DLLEXPORT int parallel_schedule_start ( parallel_schedule *const p_schedule );
 
 /** !
  * Stop running a schedule
@@ -80,7 +98,37 @@ DLLEXPORT int parallel_schedule_start ( parallel_schedule *p_schedule );
  *
  * @return 1 on success, 0 on error
  */
-DLLEXPORT int parallel_schedule_stop ( parallel_schedule *p_schedule );
+DLLEXPORT int parallel_schedule_stop ( parallel_schedule *const p_schedule );
 
-DLLEXPORT int parallel_schedule_destroy ( parallel_schedule **pp_schedule );
+/** !
+ * Register a task with the scheduler
+ * 
+ * @param name     the name of the task
+ * @param pfn_task pointer to task function
+ * 
+ * @sa parallel_schedule_unregister_task
+ * 
+ * @return 1 on success, 0 on error
+ */
+DLLEXPORT int parallel_schedule_register_task ( const char *const name, fn_scheduler_task *pfn_scheduler_task );
+
+/** !
+ * Unegister a task from the scheduler
+ * 
+ * @param name the name of the task
+ * 
+ * @sa parallel_schedule_register_task
+ * 
+ * @return 1 on success, 0 on error
+ */
+DLLEXPORT int parallel_schedule_unrgister_task ( const char *const name );
+
+/** !
+ * Destroy a schedule
+ * 
+ * @param pp_schedule the schedule
+ * 
+ * @return 1 on success, 0 on error
+ */
+DLLEXPORT int parallel_schedule_destroy ( parallel_schedule **const pp_schedule );
 
