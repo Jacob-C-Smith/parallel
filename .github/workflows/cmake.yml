@@ -45,8 +45,10 @@ jobs:
       run: |
         cp -r ${{github.workspace}}/extern/json/parse\ test\ cases/ ${{github.workspace}}/build/parse\ test\ cases/
         cp -r ${{github.workspace}}/extern/json/serial\ test\ cases/ ${{github.workspace}}/build/serial\ test\ cases/
+        cp ${{github.workspace}}/schedule.json ${{github.workspace}}/build/schedule.json
         valgrind --tool=memcheck --leak-check=yes --show-reachable=yes --error-exitcode=1 ${{github.workspace}}/build/array_test
         valgrind --tool=memcheck --leak-check=yes --show-reachable=yes --error-exitcode=1 ${{github.workspace}}/build/dict_test
         valgrind --tool=memcheck --leak-check=yes --show-reachable=yes --error-exitcode=1 ${{github.workspace}}/build/json_test
         ${{github.workspace}}/build/queue_test
+        echo ""
         ${{github.workspace}}/build/parallel_example

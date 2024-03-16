@@ -120,7 +120,7 @@ int main ( int argc, const char *argv[] )
     if ( parallel_init() == 0 ) goto failed_to_initialize_parallel;
 
     // Formatting
-    log_info(
+    printf(
         "╭──────────────────╮\n"\
         "│ parallel example │\n"\
         "╰──────────────────╯\n"\
@@ -278,7 +278,7 @@ int parallel_thread_example ( int argc, const char *argv[] )
     (void) argv;
 
     // Formatting
-    log_info(
+    printf(
         "\n"\
         "╭────────────────╮\n"\
         "│ thread example │\n"\
@@ -343,7 +343,7 @@ int parallel_thread_pool_example ( int argc, const char *argv[] )
     (void) argv;
 
     // Formatting
-    log_info(
+    printf(
         "\n"\
         "╭─────────────────────╮\n"\
         "│ thread pool example │\n"\
@@ -393,7 +393,7 @@ int parallel_schedule_example ( int argc, const char *argv[] )
     (void) argv;
 
     // Formatting
-    log_info(
+    printf(
         "\n"\
         "╭──────────────────╮\n"\
         "│ schedule example │\n"\
