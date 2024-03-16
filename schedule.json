@@ -1,39 +1,43 @@
 {
-    "name" : "Ordered Schedule",
-    "main thread" : "main",
+    "name" : "stand up",
+    "main thread" : "Alice",
     "threads" :
     {
-        "main" : 
-        {
-            "description" : "the main thread",
-            "tasks" :
-            [
-                {
-                    "task" : "task 1",
-                    "wait thread" : "thread 2",
-                    "wait task" : "task 2"
-                }
-            ]
-        },
-        "thread 2" : 
-        {
-            "description" : "thread 2",
-            "tasks" :
-            [
-                {
-                    "task" : "task 2",
-                    "wait thread" : "thread 3",
-                    "wait task" : "task 3"
-                }
-            ]
-        },
-        "thread 3" :
-        {
-            "description" : "thread 3",
-            "tasks" :
-            [ 
-                { "task" : "task 3" }
-            ]
-        }
+        "Alice" : 
+        [
+            { "task" : "Alice tells a joke" },
+            {
+                "task" : "laugh",
+                "wait" : "Charlie:Charlie tells a joke"
+            },
+            {
+                "task" : "laugh",
+                "wait" : "Bob:Bob tells a joke"
+            }
+        ],
+        "Bob" :  
+        [
+            {
+                "task" : "laugh",
+                "wait" : "Alice:Alice tells a joke"
+            },
+            {
+                "task" : "laugh",
+                "wait" : "Charlie:Charlie tells a joke"
+            },
+            { "task" : "Bob tells a joke" }
+        ],
+        "Charlie" : 
+        [ 
+            {
+                "task" : "laugh",
+                "wait" : "Alice:Alice tells a joke"
+            },
+            { "task" : "Charlie tells a joke" },
+            {
+                "task" : "laugh",
+                "wait" : "Bob:Bob tells a joke"
+            }
+        ]
     }
 }
