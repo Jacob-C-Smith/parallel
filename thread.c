@@ -58,12 +58,12 @@ int parallel_thread_create ( parallel_thread **pp_parallel_thread )
     }
 }
 
-int parallel_thread_start ( parallel_thread **pp_parallel_thread, void *pfn_function_pointer, void *p_parameter )
+int parallel_thread_start ( parallel_thread **pp_parallel_thread, fn_parallel_task *pfn_task, void *p_parameter )
 {
 
     // Argument check
-    if ( pp_parallel_thread   == (void *) 0 ) goto no_parallel_thread;
-    if ( pfn_function_pointer == (void *) 0 ) goto no_function_pointer;
+    if ( pp_parallel_thread == (void *) 0 ) goto no_parallel_thread;
+    if ( pfn_task           == (void *) 0 ) goto no_function_pointer;
 
     // Initialized data
     parallel_thread *p_parallel_thread = (void *) 0;
@@ -78,9 +78,8 @@ int parallel_thread_start ( parallel_thread **pp_parallel_thread, void *pfn_func
         //
 
     #else
-
         // Create a pthread
-        if ( pthread_create(&p_parallel_thread->platform_dependent_thread, NULL, pfn_function_pointer, p_parameter) != 0 ) goto failed_to_create_pthread;
+        if ( pthread_create(&p_parallel_thread->platform_dependent_thread, NULL, pfn_task, p_parameter) != 0 ) goto failed_to_create_pthread;
     #endif
 
     // Return a pointer to the caller
@@ -88,6 +87,9 @@ int parallel_thread_start ( parallel_thread **pp_parallel_thread, void *pfn_func
 
     // Success
     return 1;
+
+        // Error
+        return 0;
 
     // Error handling
     {
@@ -133,7 +135,6 @@ int parallel_thread_start ( parallel_thread **pp_parallel_thread, void *pfn_func
                 return 0;
         }
     }
-
 }
 
 int parallel_thread_join ( parallel_thread **pp_parallel_thread )
@@ -153,8 +154,6 @@ int parallel_thread_join ( parallel_thread **pp_parallel_thread )
 
     #else
 
-        // Wait for a thread to finish executing
-        if ( pthread_join(p_parallel_thread->platform_dependent_thread, NULL) != 0 ) goto failed_to_join_pthread;
     #endif
 
     // Destory the parallel thread
@@ -211,14 +210,20 @@ int parallel_thread_destory ( parallel_thread **pp_parallel_thread )
     // No more pointer for caller
     *pp_parallel_thread = (void *) 0;
 
-    // TODO: Free everything
-    //
-
+    // Wait for the thread to finish executing
+    if ( pthread_join(p_parallel_thread->platform_dependent_thread, NULL) != 0 ) goto failed_to_join_pthread;
+        
     // Free the parallel thread struct
-    PARALLEL_REALLOC(p_parallel_thread, 0);
+    PARALLEL_FREE(p_parallel_thread);
 
     // Success
     return 1;
+
+    // TODO
+    failed_to_join_pthread:
+        log_error("ASDF");
+        // Error
+        return 0;
 
     // Error handling
     {

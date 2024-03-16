@@ -28,7 +28,7 @@ typedef struct parallel_schedule_task_s   parallel_schedule_task;
 struct parallel_schedule_task_s
 {
     bool dependent;
-    fn_scheduler_task *pfn_task;
+    fn_parallel_task *pfn_task;
     char _name [PARALLEL_SCHEDULE_TASK_NAME_LENGTH],
          _wait_thread [PARALLEL_SCHEDULE_THREAD_NAME_LENGTH],
          _wait_task [PARALLEL_SCHEDULE_TASK_NAME_LENGTH];
@@ -37,8 +37,7 @@ struct parallel_schedule_task_s
 struct parallel_schedule_s
 {
     dict *p_threads;
-    char  _name [PARALLEL_SCHEDULE_NAME_LENGTH],
-          _main_thread [PARALLEL_SCHEDULE_THREAD_NAME_LENGTH];
+    char  _name [PARALLEL_SCHEDULE_NAME_LENGTH];
 };
 
 struct parallel_schedule_thread_s
@@ -49,9 +48,6 @@ struct parallel_schedule_thread_s
     char _name [PARALLEL_SCHEDULE_THREAD_NAME_LENGTH];
     parallel_schedule_task tasks [];
 };
-
-// Static data
-dict *parallel_schedule_tasks = 0;
 
 // Function declarations
 /** !
@@ -87,6 +83,17 @@ void parallel_schedule_work ( parallel_schedule_thread *p_thread );
 
 // TODO: Document
 int parallel_schedule_thread_destroy ( parallel_schedule_thread **pp_thread );
+
+/**!
+ * Return the size of a file IF buffer == 0 ELSE read a file into buffer
+ * 
+ * @param path path to the file
+ * @param buffer buffer
+ * @param binary_mode "wb" IF true ELSE "w"
+ * 
+ * @return 1 on success, 0 on error
+ */
+size_t load_file ( const char *path, void *buffer, bool binary_mode );
 
 // Function definitions
 int parallel_schedule_create ( parallel_schedule **const pp_schedule )
@@ -314,11 +321,10 @@ int parallel_schedule_load_as_json_value ( parallel_schedule **const pp_schedule
                       *p_schedule = (void *) 0;
     dict *p_dict = p_value->object;
     const json_value *const p_name        = dict_get(p_dict, "name"),
-                     *const p_main_thread = dict_get(p_dict, "main thread"),
                      *const p_threads     = dict_get(p_dict, "threads");
 
     // Check for missing properties
-    if ( ! ( p_name && p_threads && p_main_thread ) ) goto missing_properties;
+    if ( ! ( p_name && p_threads ) ) goto missing_properties;
 
     // Parse the name property
     if ( p_name->type == JSON_VALUE_STRING )
@@ -337,28 +343,6 @@ int parallel_schedule_load_as_json_value ( parallel_schedule **const pp_schedule
 
         // Null terminate the copied string
         _schedule._name[len] = '\0';
-    } 
-
-    // Default
-    else goto wrong_name_type;
-
-    // Parse the main thread property
-    if ( p_name->type == JSON_VALUE_STRING )
-    {
-
-        // Initialized data
-        char   *p_main_thread_string = p_main_thread->string;
-        size_t  len                  = strlen(p_main_thread_string);
-
-        // Error check
-        if ( len < 1 ) goto main_thread_property_too_short;
-        if ( len > PARALLEL_SCHEDULE_THREAD_NAME_LENGTH - 1 ) goto main_thread_property_too_long;
-        
-        // Copy the name into the schedule struct
-        strncpy(_schedule._main_thread, p_main_thread_string, len);
-
-        // Null terminate the copied string
-        _schedule._main_thread[len] = '\0';
     } 
 
     // Default
@@ -494,21 +478,6 @@ int parallel_schedule_load_as_json_value ( parallel_schedule **const pp_schedule
                 // Error
                 return 0;
             
-            main_thread_property_too_long:
-                #ifndef NDEBUG
-                    log_error("[parallel] [schedule] \"main thread\" property of schedule object must be less than %d characters in call to function \"%s\"\n\"Refer to schedule schema: [TODO: Schedule schema URL] \n", PARALLEL_SCHEDULE_THREAD_NAME_LENGTH, __FUNCTION__);
-                #endif
-
-                // Error
-                return 0;
-
-            main_thread_property_too_short:
-                #ifndef NDEBUG
-                    log_error("[parallel] [schedule] \"main thread\" property of schedule object must be at least 1 character long in call to function \"%s\"\n\"Refer to schedule schema: [TODO: Schedule schema URL] \n", __FUNCTION__);
-                #endif
-
-                // Error
-                return 0;
             threads_property_is_empty:
                 #ifndef NDEBUG
                     log_error("[parallel] [schedule] \"threads\" property of schedule object must contain at least 1 property in call to function \"%s\"\n\"Refer to schedule schema: [TODO: Schedule schema URL] \n", __FUNCTION__);
@@ -567,7 +536,7 @@ int parallel_schedule_thread_load_as_json_value ( parallel_schedule_thread **con
     {
         
         // Initialized data
-        const json_value *const p_ith_value = (void *) 0;
+        const json_value *p_ith_value = (void *) 0;
         
         // Store the ith json value
         (void) array_index(p_array, i, &p_ith_value);
@@ -590,7 +559,9 @@ int parallel_schedule_thread_load_as_json_value ( parallel_schedule_thread **con
                 
                 // Initialized data
                 size_t len = 0;
-                fn_scheduler_task *pfn_task = dict_get(parallel_schedule_tasks, p_task->string);
+                fn_parallel_task *pfn_task = 0;
+                
+                parallel_find_task(p_task->string, &pfn_task);
 
                 // Error check
                 if ( pfn_task == 0 )
@@ -854,19 +825,6 @@ int parallel_schedule_stop ( parallel_schedule *const p_schedule )
     }
 }
 
-int parallel_schedule_register_task ( const char *const name, fn_scheduler_task *pfn_scheduler_task )
-{
-
-    // TODO: Argument check
-    //
-
-    // Store the task
-    dict_add(parallel_schedule_tasks, name, pfn_scheduler_task);
-
-    // Success
-    return 1;
-}
-
 int parallel_schedule_destroy ( parallel_schedule **const pp_schedule )
 {
 
@@ -890,3 +848,58 @@ void parallel_schedule_work ( parallel_schedule_thread *p_thread )
 }
 
 int parallel_schedule_thread_destroy ( parallel_schedule_thread **pp_thread );
+
+size_t load_file ( const char *path, void *buffer, bool binary_mode )
+{
+
+    // Argument checking 
+    if ( path == 0 ) goto no_path;
+
+    // Initialized data
+    size_t  ret = 0;
+    FILE   *f   = fopen(path, (binary_mode) ? "rb" : "r");
+    
+    // Check if file is valid
+    if ( f == NULL ) goto invalid_file;
+
+    // Find file size and prep for read
+    fseek(f, 0, SEEK_END);
+    ret = ftell(f);
+    fseek(f, 0, SEEK_SET);
+    
+    // Read to data
+    if ( buffer ) ret = fread(buffer, 1, ret, f);
+
+    // The file is no longer needed
+    fclose(f);
+    
+    // Success
+    return ret;
+
+    // Error handling
+    {
+
+        // Argument errors
+        {
+            no_path:
+                #ifndef NDEBUG
+                    printf("[JSON] Null path provided to function \"%s\n", __FUNCTION__);
+                #endif
+
+            // Error
+            return 0;
+        }
+
+        // File errors
+        {
+            invalid_file:
+                #ifndef NDEBUG
+                    printf("[Standard library] Failed to load file \"%s\". %s\n",path, strerror(errno));
+                #endif
+
+            // Error
+            return 0;
+        }
+    }
+}
+

@@ -49,9 +49,9 @@ void print_usage ( const char *argv0 );
  * @param argv            the argv parameter of the entry point
  * @param examples_to_run return
  * 
- * @return 1 on success, 0 on error
+ * @return void on success, program abort on failure
  */
-int parse_command_line_arguments ( int argc, const char *argv[], bool *examples_to_run );
+void parse_command_line_arguments ( int argc, const char *argv[], bool *examples_to_run );
 
 /** !
  * Thread example program
@@ -90,18 +90,43 @@ int parallel_schedule_example ( int argc, const char *argv[] );
  * 
  * @return void
  */
-void print_something_to_standard_out ( void *p_parameter );
+void *print_something_to_standard_out ( void *p_parameter );
 
-/**!
- * Return the size of a file IF buffer == 0 ELSE read a file into buffer
+/** !
+ * Alice tells a joke
  * 
- * @param path path to the file
- * @param buffer buffer
- * @param binary_mode "wb" IF true ELSE "w"
+ * @param name "Alice"
  * 
- * @return 1 on success, 0 on error
+ * @return void
  */
-size_t load_file ( const char *path, void *buffer, bool binary_mode );
+void *alice_joke ( char *name );
+
+/** !
+ * Bob tells a joke
+ * 
+ * @param name "Bob"
+ * 
+ * @return void
+ */
+void *bob_joke ( char *name );
+
+/** !
+ * Charlie tells a joke
+ * 
+ * @param name "Charlie"
+ * 
+ * @return void
+ */
+void *charlie_joke ( char *name );
+
+/** !
+ * Someone starts laughing
+ * 
+ * @param who the someone in question
+ * 
+ * @return void
+*/
+void *laugh ( char *who );
 
 // Entry point
 int main ( int argc, const char *argv[] )
@@ -111,10 +136,7 @@ int main ( int argc, const char *argv[] )
     bool examples_to_run[PARALLEL_EXAMPLES_QUANTITY] = { 0 };
 
     // Parse command line arguments
-    if ( parse_command_line_arguments (argc, argv, &examples_to_run) == 0 )
-        
-        // Error
-        return EXIT_FAILURE;
+    parse_command_line_arguments(argc, argv, examples_to_run);
 
     // Initialize parallel
     if ( parallel_init() == 0 ) goto failed_to_initialize_parallel;
@@ -124,7 +146,12 @@ int main ( int argc, const char *argv[] )
         "╭──────────────────╮\n"\
         "│ parallel example │\n"\
         "╰──────────────────╯\n"\
-        "The parallel library provides high level abstractions for parallel computing\n"
+        "The parallel library provides high level abstractions for parallel computing.\n"\
+        "Parallel provides %d abstractions. The thread, the thread pool, and the schedule.\n\n"\
+        "A thread is the most primitive abstraction in parallel computing.\n"\
+        "A thread pool is an abstraction for a collection of threads.\n"\
+        "A schedule is an abstraction for coordinating logical units of work over time. \n\n",
+        PARALLEL_EXAMPLES_QUANTITY
     );
 
     //////////////////////
@@ -148,6 +175,9 @@ int main ( int argc, const char *argv[] )
 
         // Error check
         if ( parallel_schedule_example(argc, argv) == 0 ) goto failed_to_run_schedule_example;
+
+    // Clean up parallel
+    parallel_quit();
 
     // Success
     return EXIT_SUCCESS;
@@ -202,7 +232,7 @@ void print_usage ( const char *argv0 )
     return;
 }
 
-int parse_command_line_arguments ( int argc, const char *argv[], bool *examples_to_run )
+void parse_command_line_arguments ( int argc, const char *argv[], bool *examples_to_run )
 {
 
     // If no command line arguments are supplied, run all the examples
@@ -238,7 +268,7 @@ int parse_command_line_arguments ( int argc, const char *argv[], bool *examples_
     }
     
     // Success
-    return 1;
+    return;
 
     // Set each example flag
     all_examples:
@@ -251,7 +281,7 @@ int parse_command_line_arguments ( int argc, const char *argv[], bool *examples_
             examples_to_run[i] = true;
         
         // Success
-        return 1;
+        return;
     }
 
     // Error handling
@@ -264,8 +294,8 @@ int parse_command_line_arguments ( int argc, const char *argv[], bool *examples_
                 // Print a usage message to standard out
                 print_usage(argv[0]);
 
-                // Error
-                return 0;
+                // Abort
+                exit(EXIT_FAILURE);
         }
     }
 }
@@ -279,11 +309,9 @@ int parallel_thread_example ( int argc, const char *argv[] )
 
     // Formatting
     printf(
-        "\n"\
         "╭────────────────╮\n"\
         "│ thread example │\n"\
         "╰────────────────╯\n"\
-        "A thread is the most primitive abstraction in parallel computing.\n\n"\
         "This example spawns %d threads. Each thread waits for [0, %d] seconds,\n"\
         "and prints a message to standard out. The thread promptly terminates.\n\n",
         PARALLEL_THREADS_QUANTITY,
@@ -298,16 +326,23 @@ int parallel_thread_example ( int argc, const char *argv[] )
 
     // Start some threads
     for (size_t i = 0; i < PARALLEL_THREADS_QUANTITY; i++)
+    {
 
         // Start a thread
-        if ( parallel_thread_start(&_p_parallel_threads[i], print_something_to_standard_out, i) == 0 ) goto failed_to_start_thread;
+        if ( parallel_thread_start(&_p_parallel_threads[i], print_something_to_standard_out, (void *) i) == 0 ) goto failed_to_start_thread;
+    }
 
     // Wait for the threads to finish
     for (size_t i = 0; i < PARALLEL_THREADS_QUANTITY; i++)
+    {
 
         // Wait for the threads to finish
         if ( parallel_thread_join(&_p_parallel_threads[i]) == 0 ) goto failed_to_join_thread;
-    
+    }
+
+    // Example formatting
+    putchar('\n');
+
     // Success
     return 1;
 
@@ -344,11 +379,9 @@ int parallel_thread_pool_example ( int argc, const char *argv[] )
 
     // Formatting
     printf(
-        "\n"\
         "╭─────────────────────╮\n"\
         "│ thread pool example │\n"\
         "╰─────────────────────╯\n"\
-        "A thread pool is an abstraction for a collection of threads.\n\n"\
         "This example [TODO: Describe example]\n\n"
     );
 
@@ -394,29 +427,26 @@ int parallel_schedule_example ( int argc, const char *argv[] )
 
     // Formatting
     printf(
-        "\n"\
         "╭──────────────────╮\n"\
         "│ schedule example │\n"\
         "╰──────────────────╯\n"\
-        "A schedule is an abstraction for coordinating logical units of work over time.\n\n"\
-        "This example [TODO: Describe example]\n\n"
+        "In this example, a group of three friends are telling jokes. First Alice, then \n"\
+        "Charlie, and finally Bob. Since it's rude to laugh while your friend is telling \n"\
+        "a joke, the listeners wait for the punchline before laughing. This demonstrates\n"\
+        "the most important features of the scheduler. Concurrency, and parallelism. \n\n"\
     );
 
     // Initialized data
     parallel_schedule *p_schedule = (void *) 0;
-    json_value        *p_value    = (void *) 0;
-
-    // Load and parse the file
-    goto load_the_file;
     
-    // Done parsing the file
-    done_loading_file:
-    
-    // TODO: Add tasks for scheduler
-    //
+    // Register tasks for the scheduler
+    (void) parallel_register_task("Alice tells a joke"  , (fn_parallel_task *)alice_joke);
+    (void) parallel_register_task("Bob tells a joke"    , (fn_parallel_task *)bob_joke);
+    (void) parallel_register_task("Charlie tells a joke", (fn_parallel_task *)charlie_joke);
+    (void) parallel_register_task("laugh"               , (fn_parallel_task *)laugh);
 
     // Construct a schedule
-    if ( parallel_schedule_load_as_json_value(&p_schedule, p_value) == 0 ) goto failed_to_construct_schedule;
+    if ( parallel_schedule_load(&p_schedule, "schedule.json") == 0 ) goto failed_to_construct_schedule;
 
     // Start the schedule
     if ( parallel_schedule_start(p_schedule) == 0 ) goto failed_to_start_schedule;
@@ -430,63 +460,8 @@ int parallel_schedule_example ( int argc, const char *argv[] )
     // Success
     return 1;
 
-    // This section of code loads the schedule file, and parses it into a json value
-    load_the_file:
-    {
-
-        // Initialized data
-        size_t  file_size       = 0;
-        char   *p_file_contents = (void *) 0;
-        
-        // Query the size of the file
-        file_size = load_file("schedule.json", 0, true);
-
-        // Error check
-        if ( file_size == 0 ) goto invalid_file;
-        
-        // Allocate memory for the file
-        p_file_contents = PARALLEL_REALLOC(0, file_size);
-
-        // Error check
-        if ( p_file_contents == (void *) 0 ) goto no_mem;
-
-        // Load the file
-        load_file("schedule.json", p_file_contents, 0);
-
-        // Parse the file into a json value
-        if ( parse_json_value(p_file_contents, 0, &p_value) == 0 ) goto failed_to_parse_json_value;
-
-        // Clean up
-        PARALLEL_REALLOC(p_file_contents, 0);
-
-        // Done
-        goto done_loading_file;
-    }
-
     // Error handling
     {
-
-        // File errors
-        {
-            invalid_file:
-                #ifndef NDEBUG
-                    log_error("[parallel] [schedule] Can not load test file in call to function \"%s\"\n", __FUNCTION__);
-                #endif
-                
-                // Error
-                return 0;
-        }
-        
-        // JSON errors
-        {
-            failed_to_parse_json_value:
-                #ifndef NDEBUG
-                    log_error("[parallel] [schedule] Failed to parse JSON text in call to function \"%s\"\n", __FUNCTION__);
-                #endif
-                
-                // Error
-                return 0;
-        }
 
         // Parallel errors
         {
@@ -513,7 +488,6 @@ int parallel_schedule_example ( int argc, const char *argv[] )
                 
                 // Error
                 return 0;
-            
         }
 
         // Standard library errors
@@ -529,7 +503,7 @@ int parallel_schedule_example ( int argc, const char *argv[] )
     }
 }
 
-void print_something_to_standard_out ( void *p_parameter )
+void *print_something_to_standard_out ( void *p_parameter )
 {
 
     // Initialized data
@@ -539,65 +513,69 @@ void print_something_to_standard_out ( void *p_parameter )
     sleep(delay);
 
     // Print the parameter to standard out
-    printf("[parallel] [thread] %d finished in %d seconds\n", p_parameter, delay);
+    log_info("Thread %d finished in %d seconds\n", p_parameter, delay);
 
     // Flush standard out
     fflush(stdout);
 
     // Done
-    return;
+    return 0;
 }
 
-size_t load_file ( const char *path, void *buffer, bool binary_mode )
+void *alice_joke ( char *name )
 {
 
-    // Argument checking 
-    if ( path == 0 ) goto no_path;
-
-    // Initialized data
-    size_t  ret = 0;
-    FILE   *f   = fopen(path, (binary_mode) ? "rb" : "r");
+    // Alice's setup
+    log_info("%s > Did you hear the story about the claustrophobic astronaut?\n", name);
     
-    // Check if file is valid
-    if ( f == NULL ) goto invalid_file;
+    // Alice hesitates
+    sleep(2);
 
-    // Find file size and prep for read
-    fseek(f, 0, SEEK_END);
-    ret = ftell(f);
-    fseek(f, 0, SEEK_SET);
-    
-    // Read to data
-    if ( buffer ) ret = fread(buffer, 1, ret, f);
+    // Alice delivers the punchline
+    log_info("\n%s > He just needed some space!\n", name);
 
-    // The file is no longer needed
-    fclose(f);
-    
     // Success
-    return ret;
+    return (void *) 1;
+}
 
-    // Error handling
-    {
+void *bob_joke ( char *name )
+{
 
-        // Argument errors
-        {
-            no_path:
-                #ifndef NDEBUG
-                    printf("[JSON] Null path provided to function \"%s\n", __FUNCTION__);
-                #endif
+    // Bob's setup
+    log_info("%s > What's red and bad for your teeth?\n", name);
+    
+    // Bob hesitates
+    sleep(2);
 
-            // Error
-            return 0;
-        }
+    // Bob delivers the punchline
+    log_info("\n%s > A brick!\n", name);
 
-        // File errors
-        {
-            invalid_file:
-                #ifndef NDEBUG
-                    printf("[Standard library] Failed to load file \"%s\". %s\n",path, strerror(errno));
-                #endif
+    // Success
+    return (void *) 1;
+}
 
-            // Error
-            return 0;
-        }
-    }
+void *charlie_joke ( char *name )
+{
+
+    // Charlie's setup
+    log_info("%s > What's the leading cause of dry skin?\n", name);
+
+    // Charlie hesitates
+    sleep(2);
+    
+    // Charlie delivers the punchline
+    log_info("\n%s > Towels!\n", name);
+
+    // Success
+    return (void *) 1;
+}
+
+void *laugh ( char *who )
+{
+
+    // Someone is laughing
+    log_info("%s > Hahahaha\n", who);
+
+    // Success
+    return (void *) 1;
 }
