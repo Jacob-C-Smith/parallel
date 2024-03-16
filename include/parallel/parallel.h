@@ -1,9 +1,9 @@
 /** !
- * @file parallel/parallel.h
- * 
- * @author Jacob C Smith
- *
  * High level abstractions for parallelized computing
+ * 
+ * @file parallel/parallel.h
+ *
+ * @author Jacob Smith
  */
 
 // Include guard
@@ -15,11 +15,14 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-// sync submodule
+// sync
 #include <sync/sync.h>
 
-// log submodule
+// log
 #include <log/log.h>
+
+// dict
+#include <dict/dict.h>
 
 // Platform dependent macros
 #ifdef _WIN64
@@ -69,4 +72,4 @@ typedef struct schedule_s schedule;
  * 
  * @return 1 on success, 0 on error 
  */ 
-int parallel_init ( void );
+DLLEXPORT int parallel_init ( void );
