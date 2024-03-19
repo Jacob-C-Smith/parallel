@@ -7,10 +7,16 @@ project ("parallel")
 # Comment out for Debug mode
 set(IS_DEBUG_BUILD CMAKE_BUILD_TYPE STREQUAL "Debug")
 
-# Set the correct paths
+# Set the output paths
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/build)
 set(CMAKE_PREFIX_PATH ${CMAKE_SOURCE_DIR}/extern/)
+
+# Build sync with semaphore
+add_compile_definitions(BUILD_SYNC_WITH_SEMAPHORE)
+
+# Build sync with monitor
+add_compile_definitions(BUILD_SYNC_WITH_MONITOR)
 
 # Find the log module
 if ( NOT "${HAS_LOG}")
@@ -22,6 +28,19 @@ if ( NOT "${HAS_LOG}")
     if(NOT PROJECT_IS_TOP_LEVEL)
         set(HAS_LOG true PARENT_SCOPE)
         set(LOG_INCLUDE_DIR ${LOG_INCLUDE_DIR} PARENT_SCOPE)
+    endif()
+endif()
+
+# Find the sync module
+if ( NOT "${HAS_SYNC}")
+    
+    # Add the sync directory
+    add_subdirectory(${CMAKE_SOURCE_DIR}/extern/sync ${CMAKE_SOURCE_DIR}/build/sync)
+
+    # Let any parent project know that this project has sync
+    if(NOT PROJECT_IS_TOP_LEVEL)
+        set(HAS_SYNC true PARENT_SCOPE)
+        set(SYNC_INCLUDE_DIR ${SYNC_INCLUDE_DIR} PARENT_SCOPE)
     endif()
 endif()
 
@@ -101,6 +120,12 @@ add_executable (parallel_example "main.c")
 add_dependencies(parallel_example log crypto json array dict sync)
 target_include_directories(parallel_example PUBLIC ${PARALLEL_INCLUDE_DIR} ${QUEUE_INCLUDE_DIR} ${ARRAY_INCLUDE_DIR} ${DICT_INCLUDE_DIR} ${SYNC_INCLUDE_DIR} ${LOG_INCLUDE_DIR} ${CRYPTO_INCLUDE_DIR})
 target_link_libraries(parallel_example queue log crypto parallel json array dict sync)
+
+
+#add_executable (tmp "tmp.c")
+#add_dependencies(tmp parallel log crypto json array dict sync)
+#target_include_directories(tmp PUBLIC ${PARALLEL_INCLUDE_DIR} ${QUEUE_INCLUDE_DIR} ${ARRAY_INCLUDE_DIR} ${DICT_INCLUDE_DIR} ${SYNC_INCLUDE_DIR} ${LOG_INCLUDE_DIR} ${CRYPTO_INCLUDE_DIR})
+#target_link_libraries(tmp queue log crypto parallel json array dict sync)
 
 ## Add source to the tester
 #add_executable (parallel_test "parallel_test.c")

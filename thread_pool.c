@@ -13,40 +13,55 @@
 /** !
  * Wait for a job, then do the job
  * 
- * @param p_thread_pool the thread pool
+ * @param p_parameter the thread pool
  * 
  * @return 1 on success, 0 on error
  */
-int thread_pool_work ( thread_pool *p_thread_pool )
+void *thread_pool_coordinator ( void *p_parameter )
 {
 
     // Initialized data
-    void *job = (void *) 0;
+    thread_pool *p_thread_pool = p_parameter;
 
-    // Wait for start
-    while (p_thread_pool->running == false)
-    {
-        ;
-    }
-    
-
-    // Wait for a job
-    while ( p_thread_pool->running )
+    // Loop until close
+    while (p_thread_pool->running)
     {
 
-        try_again:
-        // Spin if there is nothing to do
-        if ( queue_dequeue(p_thread_pool->jobs, &job) == 0 )
-        {
-            goto try_again;
-        }
+        mutex_lock(p_thread_pool->_lock);
 
-        // Do the job
-        p_thread_pool->pfn_task(job);
+        // Wait until needed
+        monitor_wait(&p_thread_pool->_monitor);
+
+        printf("NOTIFY!!!\n");
+        fflush(stdout);
+
+        mutex_unlock(p_thread_pool->_lock);
     }
 
     // Success
-    return 1;
+    return (void *) 1;
+}
+
+void *thread_pool_work ( void *p_parameter )
+{
+
+    // Initialized data
+    thread_pool *p_thread_pool = p_parameter;
+
+
+
+    mutex_lock(p_thread_pool->_lock);
+
+    // Wait until needed
+    monitor_wait(&p_thread_pool->_monitor);
+
+    printf("NOTIFY!!!\n");
+    fflush(stdout);
+
+    mutex_unlock(p_thread_pool->_lock);
+
+    // Success
+    return (void *) 1;
 }
 
 int thread_pool_create ( thread_pool **pp_thread_pool )
@@ -97,7 +112,7 @@ int thread_pool_create ( thread_pool **pp_thread_pool )
     }
 }
 
-int thread_pool_construct ( thread_pool **pp_thread_pool, int thread_quantity, int (*pfn_task)(void *job) )
+int thread_pool_construct ( thread_pool **pp_thread_pool, int thread_quantity )
 {
     
     // Argument check
@@ -106,45 +121,47 @@ int thread_pool_construct ( thread_pool **pp_thread_pool, int thread_quantity, i
     // Initialized data
     thread_pool *p_thread_pool = (void *) 0,
                   _thread_pool = { 0 };
-    parallel_thread **pp_threads = PARALLEL_REALLOC(0, sizeof(parallel_thread *) * thread_quantity);
-    //bool *working = PARALLEL_REALLOC(0, sizeof(bool) * thread_quantity);
     queue *jobs = (void *) 0;
 
     // Error check
-    //if ( working    == (void *) 0 ) goto no_mem;
-    if ( pp_threads == (void *) 0 ) goto no_mem;
+    if ( thread_quantity > PARALLEL_THREAD_POOL_MAX_THREADS ) goto thread_pool_too_large;
 
     // Allocate memory for a thread pool
     if ( thread_pool_create(&p_thread_pool) == 0 ) goto failed_to_allocate_thread_pool;
-
-    // Allocate a queue
-    if ( queue_construct(&jobs) == (void *) 0 ) goto failed_to_construct_queue;
 
     // Populate the thread pool struct
     _thread_pool = (thread_pool)
     {
         .thread_quantity = thread_quantity,
-        .pp_threads      = pp_threads,
-        .pfn_task        = pfn_task,
         .jobs            = jobs,
-        .running         = false,
-        ._lock           = 0
+        .running         = true
     };
+
+    // Construct a queue
+    queue_construct(&_thread_pool.jobs);
 
     // Copy the thread pool struct to the heap
     memcpy(p_thread_pool, &_thread_pool, sizeof(thread_pool));
 
-    // Create a lock
+    // Create a thread
+    parallel_thread_start(&_thread_pool.p_main, thread_pool_coordinator, p_thread_pool);
+
+    // Create a mutex
     mutex_create(&p_thread_pool->_lock);
 
-    // Construct thread_quantity threads
-    for (size_t i = 0; i < thread_quantity; i++) parallel_thread_start(&pp_threads[i], thread_pool_work, p_thread_pool);
+    // Create a monitor
+    monitor_create(&p_thread_pool->_monitor);
 
     // Return a pointer to the caller
     *pp_thread_pool = p_thread_pool;
 
     // Success
     return 1;
+
+    thread_pool_too_large:
+        
+        // Error
+        return 0;
 
     // Error handling
     {
@@ -195,11 +212,41 @@ int thread_pool_construct ( thread_pool **pp_thread_pool, int thread_quantity, i
     }
 }
 
-int thread_pool_enqueue ( thread_pool *p_thread_pool, void *job )
+int thread_pool_run ( thread_pool *p_thread_pool, void *job )
 {
     
     // Argument check
     if ( p_thread_pool == (void *) 0 ) goto no_thread_pool;
+
+    void *p_job = 0;
+    int retries = 0;
+
+    try:
+    
+    // Check for work
+    if ( queue_empty(p_thread_pool->jobs) ) goto no_work;
+
+    // Dequeue a job
+    queue_dequeue(p_thread_pool, &p_job);
+
+    // Start a thread to work on the job
+    parallel_thread_start(
+        &p_thread_pool->_p_threads[p_thread_pool->running_jobs],
+        thread_pool_work,
+        p_job
+    );
+
+    // This branch is run when there is no work to do
+    no_work:
+
+    // Success
+    return 1;
+
+    // Increment the retry counter
+    retries++;
+
+    // Try again?
+    if ( retries < 5 ) goto try;
 
     // Add the job to the queue
     if ( queue_enqueue(p_thread_pool->jobs, job) == 0 ) goto failed_to_enqueue_task;

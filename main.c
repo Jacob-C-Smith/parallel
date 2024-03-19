@@ -162,7 +162,7 @@ int main ( int argc, const char *argv[] )
     if ( examples_to_run[PARALLEL_THREAD_EXAMPLE] )
 
         // Error check
-        if ( parallel_thread_example(argc, argv) == 0 ) goto failed_to_run_thread_example;
+        ;//if ( parallel_thread_example(argc, argv) == 0 ) goto failed_to_run_thread_example;
 
     // Run the thread pool example program
     if ( examples_to_run[PARALLEL_THREAD_POOL_EXAMPLE] )
@@ -174,7 +174,7 @@ int main ( int argc, const char *argv[] )
     if ( examples_to_run[PARALLEL_SCHEDULE_EXAMPLE] )
 
         // Error check
-        if ( parallel_schedule_example(argc, argv) == 0 ) goto failed_to_run_schedule_example;
+        ;//if ( parallel_schedule_example(argc, argv) == 0 ) goto failed_to_run_schedule_example;
 
     // Clean up parallel
     parallel_quit();
@@ -387,18 +387,20 @@ int parallel_thread_pool_example ( int argc, const char *argv[] )
 
     // Initialized data
     thread_pool *p_thread_pool = (void *) 0;
-
-    /*
+    timestamp   *_timestamps[7] = { 0 };
+    
+    sleep(6);
+    
     // Construct a thread pool
-    if ( thread_pool_construct(&p_thread_pool, 8, print_something_to_standard_out) == 0 ) goto failed_to_construct_thread_pool;
+    if ( thread_pool_construct(&p_thread_pool, 3) == 0 ) goto failed_to_construct_thread_pool;
 
     // Enqueue some tasks
-    // for (size_t i = 1; i < 15; i++) thread_pool_enqueue(p_thread_pool, i);
+    for (size_t i = 1; i < 3; i++)
+        thread_pool_run(p_thread_pool, print_something_to_standard_out);
 
-    p_thread_pool->running = 1;
-
-    sleep(6);
-    */
+    // Wait for everything to finish
+    //thread_pool_wait_idle(p_thread_pool);
+    
     // Success
     return 1;
 
@@ -450,6 +452,8 @@ int parallel_schedule_example ( int argc, const char *argv[] )
 
     // Start the schedule
     if ( parallel_schedule_start(p_schedule) == 0 ) goto failed_to_start_schedule;
+
+    sleep(40);
 
     // Stop the schedule
     if ( parallel_schedule_stop(p_schedule) == 0 ) goto failed_to_stop_schedule;
@@ -513,7 +517,7 @@ void *print_something_to_standard_out ( void *p_parameter )
     sleep(delay);
 
     // Print the parameter to standard out
-    log_info("Thread %d finished in %d seconds\n", p_parameter, delay);
+    log_info("Thread %d finished in %d seconds\n", p_parameter, delay); fflush(stdout);
 
     // Flush standard out
     fflush(stdout);
@@ -526,13 +530,13 @@ void *alice_joke ( char *name )
 {
 
     // Alice's setup
-    log_info("%s > Did you hear the story about the claustrophobic astronaut?\n", name);
+    log_info("Alice > Did you hear the story about the claustrophobic astronaut?\n"); fflush(stdout);
     
     // Alice hesitates
     sleep(2);
 
     // Alice delivers the punchline
-    log_info("\n%s > He just needed some space!\n", name);
+    log_info("\nAlice > He just needed some space!\n"); fflush(stdout);
 
     // Success
     return (void *) 1;
@@ -542,13 +546,13 @@ void *bob_joke ( char *name )
 {
 
     // Bob's setup
-    log_info("%s > What's red and bad for your teeth?\n", name);
+    log_info("Bob > What's red and bad for your teeth?\n"); fflush(stdout);
     
     // Bob hesitates
     sleep(2);
 
     // Bob delivers the punchline
-    log_info("\n%s > A brick!\n", name);
+    log_info("\nBob > A brick!\n"); fflush(stdout);
 
     // Success
     return (void *) 1;
@@ -558,13 +562,13 @@ void *charlie_joke ( char *name )
 {
 
     // Charlie's setup
-    log_info("%s > What's the leading cause of dry skin?\n", name);
+    log_info("Charlie > What's the leading cause of dry skin?\n"); fflush(stdout);
 
     // Charlie hesitates
     sleep(2);
     
     // Charlie delivers the punchline
-    log_info("\n%s > Towels!\n", name);
+    log_info("\nCharlie > Towels!\n"); fflush(stdout);
 
     // Success
     return (void *) 1;
@@ -574,7 +578,7 @@ void *laugh ( char *who )
 {
 
     // Someone is laughing
-    log_info("%s > Hahahaha\n", who);
+    log_info("%s > Hahahaha\n", who); fflush(stdout);
 
     // Success
     return (void *) 1;

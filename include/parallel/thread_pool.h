@@ -15,6 +15,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+#define BUILD_SYNC_WITH_MONITOR
+
 // sync submodule
 #include <sync/sync.h>
 
@@ -25,16 +27,22 @@
 #include <parallel/parallel.h>
 #include <parallel/thread.h>
 
+// Preprocessor definitions
+#define PARALLEL_THREAD_POOL_MAX_THREADS 64
+
 // structure definitions
 struct thread_pool_s
 {
-    int thread_quantity;
-    parallel_thread **pp_threads;
-    bool *working;
-    queue *jobs;
+    int thread_quantity,
+        running_jobs,
+        pending_jobs,
+        complete_jobs;
     bool running;
-    int (*pfn_task)(void *job);
+    queue *jobs;
+    monitor _monitor;
     mutex _lock;
+    parallel_thread *p_main, 
+                    *_p_threads[PARALLEL_THREAD_POOL_MAX_THREADS];
 };
 
 /** !
@@ -46,9 +54,15 @@ struct thread_pool_s
  */
 DLLEXPORT int thread_pool_create ( thread_pool **pp_thread_pool );
 
-DLLEXPORT int thread_pool_construct ( thread_pool **pp_thread_pool, int thread_quantity, int (*pfn_task)(void *job) );
+DLLEXPORT int thread_pool_construct ( thread_pool **pp_thread_pool, int thread_quantity );
 
-DLLEXPORT int thread_pool_enqueue ( thread_pool *p_thread_pool, void *job );
+DLLEXPORT int thread_pool_run ( thread_pool *p_thread_pool, void *job );
+
+DLLEXPORT int thread_pool_pending_jobs ( thread_pool *p_thread_pool, int *p_result );
+
+DLLEXPORT int thread_pool_complete_jobs ( thread_pool *p_thread_pool, void *p_result );
+
+DLLEXPORT bool thread_pool_is_idle ( thread_pool *p_thread_pool );
 
 /** !
  * Destroy a thread pool
