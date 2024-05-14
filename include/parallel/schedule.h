@@ -56,6 +56,16 @@ DLLEXPORT int parallel_schedule_create ( parallel_schedule **const pp_schedule )
 */
 DLLEXPORT int parallel_schedule_load ( parallel_schedule **const pp_schedule, const char *const path );
 
+/** !
+ * Construct a schedule from a json value 
+ * 
+ * @param pp_schedule return
+ * @param p_value     the json value
+ * 
+ * @return 1 on success, 0 on error 
+*/
+int parallel_schedule_load_as_json_value ( parallel_schedule **const pp_schedule, const json_value *const p_value );
+
 // Start
 /** !
  * Start running a schedule
