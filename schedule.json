@@ -4,20 +4,38 @@
     {
         "Alice" : 
         [
-            { "task" : "Alice tells a joke" }
+            { "task" : "Alice tells a joke" },
+            {
+                "task" : "laugh",
+                "wait" : "Charlie:Charlie tells a joke"
+            },
+            {
+                "task" : "laugh",
+                "wait" : "Bob:Bob tells a joke"
+            }
         ],
-        "Bob" :  
+        "Bob" : 
         [
             {
                 "task" : "laugh",
                 "wait" : "Alice:Alice tells a joke"
-            }
+            },
+            {
+                "task" : "laugh",
+                "wait" : "Charlie:Charlie tells a joke"
+            },
+            { "task" : "Bob tells a joke" }
         ],
         "Charlie" : 
-        [ 
+        [
             {
                 "task" : "laugh",
                 "wait" : "Alice:Alice tells a joke"
+            },
+            { "task" : "Charlie tells a joke" },
+            {
+                "task" : "laugh",
+                "wait" : "Bob:Bob tells a joke"
             }
         ]
     }

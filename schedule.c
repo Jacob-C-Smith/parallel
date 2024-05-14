@@ -462,7 +462,6 @@ int parallel_schedule_load_as_json_value ( parallel_schedule **const pp_schedule
 
                         if ( i_dependency_task->dependency )
                         {
-                            printf("%s:%s --> %s:%s\n", p_dependency_thread->_name, i_dependency_task->_name, p_thread->_name, p_task->_name);
                             thread_task[i].ta = p_thread->_name,
                             thread_task[i].th = p_task->_name;
                             i_dependency_task->dependency = true;
@@ -890,8 +889,6 @@ int parallel_schedule_stop ( parallel_schedule *const p_schedule )
 
     // Store the threads from the schedule
     dict_values(p_schedule->p_threads, _p_threads);
-
-    printf("[Schedule] Joining threads\n");
 
     // Iterate over each thread
     for (size_t i = 0; i < thread_quantity; i++)
