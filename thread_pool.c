@@ -27,7 +27,7 @@ void *thread_pool_coordinator ( void *p_parameter )
     while (p_thread_pool->running)
     {
 
-        mutex_lock(p_thread_pool->_lock);
+        mutex_lock(&p_thread_pool->_lock);
 
         // Wait until needed
         monitor_wait(&p_thread_pool->_monitor);
@@ -35,7 +35,7 @@ void *thread_pool_coordinator ( void *p_parameter )
         printf("NOTIFY!!!\n");
         fflush(stdout);
 
-        mutex_unlock(p_thread_pool->_lock);
+        mutex_unlock(&p_thread_pool->_lock);
     }
 
     // Success
@@ -50,7 +50,7 @@ void *thread_pool_work ( void *p_parameter )
 
 
 
-    mutex_lock(p_thread_pool->_lock);
+    mutex_lock(&p_thread_pool->_lock);
 
     // Wait until needed
     monitor_wait(&p_thread_pool->_monitor);
@@ -58,7 +58,7 @@ void *thread_pool_work ( void *p_parameter )
     printf("NOTIFY!!!\n");
     fflush(stdout);
 
-    mutex_unlock(p_thread_pool->_lock);
+    mutex_unlock(&p_thread_pool->_lock);
 
     // Success
     return (void *) 1;

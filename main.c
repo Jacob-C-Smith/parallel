@@ -168,13 +168,13 @@ int main ( int argc, const char *argv[] )
     if ( examples_to_run[PARALLEL_THREAD_POOL_EXAMPLE] )
 
         // Error check
-        if ( parallel_thread_pool_example(argc, argv) == 0 ) goto failed_to_run_thread_pool_example;
+        ;//if ( parallel_thread_pool_example(argc, argv) == 0 ) goto failed_to_run_thread_pool_example;
 
     // Run the schedule example program
     if ( examples_to_run[PARALLEL_SCHEDULE_EXAMPLE] )
 
         // Error check
-        ;//if ( parallel_schedule_example(argc, argv) == 0 ) goto failed_to_run_schedule_example;
+        if ( parallel_schedule_example(argc, argv) == 0 ) goto failed_to_run_schedule_example;
 
     // Clean up parallel
     parallel_quit();
@@ -453,8 +453,6 @@ int parallel_schedule_example ( int argc, const char *argv[] )
     // Start the schedule
     if ( parallel_schedule_start(p_schedule) == 0 ) goto failed_to_start_schedule;
 
-    sleep(40);
-
     // Stop the schedule
     if ( parallel_schedule_stop(p_schedule) == 0 ) goto failed_to_stop_schedule;
 
@@ -530,13 +528,17 @@ void *alice_joke ( char *name )
 {
 
     // Alice's setup
-    log_info("Alice > Did you hear the story about the claustrophobic astronaut?\n"); fflush(stdout);
+    printf("\nAlice > Did you hear the story about the claustrophobic astronaut?\n"); fflush(stdout);
     
     // Alice hesitates
-    sleep(2);
+    for (size_t i = 0; i < 3; i++)
+    {
+        printf("."); fflush(stdout);
+        sleep(1);
+    }
 
     // Alice delivers the punchline
-    log_info("\nAlice > He just needed some space!\n"); fflush(stdout);
+    printf("\nAlice > He just needed some space!\n"); fflush(stdout);
 
     // Success
     return (void *) 1;
@@ -546,13 +548,19 @@ void *bob_joke ( char *name )
 {
 
     // Bob's setup
-    log_info("Bob > What's red and bad for your teeth?\n"); fflush(stdout);
+    printf("\nBob > What's red and bad for your teeth?\n"); fflush(stdout);
     
     // Bob hesitates
-    sleep(2);
-
+    for (size_t i = 0; i < 3; i++)
+    {
+        printf("."); fflush(stdout);
+        sleep(1);
+    }
+    
     // Bob delivers the punchline
-    log_info("\nBob > A brick!\n"); fflush(stdout);
+    printf("\nBob > A brick!\n"); fflush(stdout);
+    
+    sleep(1);
 
     // Success
     return (void *) 1;
@@ -562,13 +570,17 @@ void *charlie_joke ( char *name )
 {
 
     // Charlie's setup
-    log_info("Charlie > What's the leading cause of dry skin?\n"); fflush(stdout);
+    printf("\nCharlie > What's the leading cause of dry skin?\n"); fflush(stdout);
 
     // Charlie hesitates
-    sleep(2);
-    
+    for (size_t i = 0; i < 3; i++)
+    {
+        printf("."); fflush(stdout);
+        sleep(1);
+    }
+
     // Charlie delivers the punchline
-    log_info("\nCharlie > Towels!\n"); fflush(stdout);
+    printf("\nCharlie > Towels!\n"); fflush(stdout);
 
     // Success
     return (void *) 1;
@@ -577,8 +589,11 @@ void *charlie_joke ( char *name )
 void *laugh ( char *who )
 {
 
-    // Someone is laughing
-    log_info("%s > Hahahaha\n", who); fflush(stdout);
+    // Someone is laughing ...
+    printf("%s > Hahahaha\n", who); fflush(stdout);
+
+    // ... for 1 second
+    sleep(1);
 
     // Success
     return (void *) 1;

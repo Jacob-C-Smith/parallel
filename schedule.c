@@ -38,11 +38,6 @@ struct parallel_schedule_task_s
          _wait_task [PARALLEL_SCHEDULE_TASK_NAME_LENGTH];
 };
 
-struct parallel_schedule_s
-{
-    dict *p_threads;
-    char  _name [PARALLEL_SCHEDULE_NAME_LENGTH];
-};
 
 struct parallel_schedule_thread_s
 {
@@ -57,6 +52,14 @@ struct parallel_schedule_work_parameter_s
 {
     parallel_schedule *p_schedule;
     parallel_schedule_thread *p_thread;
+};
+
+struct parallel_schedule_s
+{
+    dict *p_threads;
+    monitor _lock;
+    char  _name [PARALLEL_SCHEDULE_NAME_LENGTH];
+    parallel_schedule_work_parameter _work_parameters[PARALLEL_SCHEDULE_MAX_THREADS];
 };
 
 // Function declarations
@@ -418,6 +421,7 @@ int parallel_schedule_load_as_json_value ( parallel_schedule **const pp_schedule
         parallel_schedule_thread         *_p_threads      [PARALLEL_SCHEDULE_MAX_THREADS] = { 0 };
         parallel_schedule_thread         *p_thread = (void *) 0;
         parallel_schedule_task           *p_task = (void *) 0;
+        
         // Store the threads from the schedule
         dict_values(_schedule.p_threads, _p_threads);
 
@@ -458,7 +462,7 @@ int parallel_schedule_load_as_json_value ( parallel_schedule **const pp_schedule
 
                         if ( i_dependency_task->dependency )
                         {
-                            printf("%s:%s depends on %s:%s\n", p_thread->_name, p_task->_name, p_dependency_thread->_name, i_dependency_task->_name);
+                            printf("%s:%s --> %s:%s\n", p_dependency_thread->_name, i_dependency_task->_name, p_thread->_name, p_task->_name);
                             thread_task[i].ta = p_thread->_name,
                             thread_task[i].th = p_task->_name;
                             i_dependency_task->dependency = true;
@@ -483,14 +487,14 @@ int parallel_schedule_load_as_json_value ( parallel_schedule **const pp_schedule
                 // Store the task
                 p_task = &p_thread->tasks[j];
             
-                if ( p_task->dependency )
-                {
-                    printf("%s:%s is a dependency to %d tasks\n", p_thread->_name, p_task->_name, p_task->dependencies);
-                }
-                else
-                {
-                    printf("%s:%s is a dependent\n", p_thread->_name, p_task->_name);
-                }
+                // if ( p_task->dependency )
+                // {
+                //     printf("%s:%s --> %d tasks\n", p_thread->_name, p_task->_name, p_task->dependencies);
+                // }
+                // else
+                // {
+                //     printf("%s:%s --> dependent\n", p_thread->_name, p_task->_name);
+                // }
             }
         }
     }
@@ -500,6 +504,9 @@ int parallel_schedule_load_as_json_value ( parallel_schedule **const pp_schedule
 
     // Copy the schedule from the stack to the heap
     memcpy(p_schedule, &_schedule, sizeof(parallel_schedule));
+
+    // Construct a monitor for the schedule
+    monitor_create(&p_schedule->_lock);
 
     // Return a pointer to the caller
     *pp_schedule = p_schedule;
@@ -805,7 +812,6 @@ int parallel_schedule_start ( parallel_schedule *const p_schedule )
     // Initialized data
     size_t thread_quantity = dict_values(p_schedule->p_threads, 0);
     parallel_schedule_thread         *_p_threads      [PARALLEL_SCHEDULE_MAX_THREADS] = { 0 };
-    parallel_schedule_work_parameter  _work_parameters[PARALLEL_SCHEDULE_MAX_THREADS] = { 0 };
 
     // Store the threads from the schedule
     dict_values(p_schedule->p_threads, _p_threads);
@@ -817,18 +823,15 @@ int parallel_schedule_start ( parallel_schedule *const p_schedule )
         // Initialized data
         parallel_schedule_thread *p_thread = _p_threads[i];
 
-        // Set the running flag
-        p_thread->running = true;
-
         // Store the thread parameter
-        _work_parameters[i] = (parallel_schedule_work_parameter)
+        p_schedule->_work_parameters[i] = (parallel_schedule_work_parameter)
         {
             .p_schedule = p_schedule,
             .p_thread   = p_thread
         };
 
         // Spawn the thread
-        if ( parallel_thread_start(&p_thread->p_parallel_thread, (fn_parallel_task *) parallel_schedule_work, &_work_parameters[i]) == 0 ) goto failed_to_create_thread;
+        if ( parallel_thread_start(&p_thread->p_parallel_thread, (fn_parallel_task *) parallel_schedule_work, &p_schedule->_work_parameters[i]) == 0 ) goto failed_to_create_thread;
 
         // Set the name of the thread
         #ifdef WIN64
@@ -839,12 +842,11 @@ int parallel_schedule_start ( parallel_schedule *const p_schedule )
             #include <sys/prctl.h>
 
             // Set the name of the thread
-            prctl(PR_SET_NAME, p_thread->_name);
+            pthread_setname_np(p_thread->p_parallel_thread->platform_dependent_thread, p_thread->_name);
         #endif
     }
 
-    // Join all
-    parallel_schedule_stop(p_schedule);
+    monitor_notify_all(&p_schedule->_lock);
     
     // Success
     return 1;
@@ -888,6 +890,8 @@ int parallel_schedule_stop ( parallel_schedule *const p_schedule )
 
     // Store the threads from the schedule
     dict_values(p_schedule->p_threads, _p_threads);
+
+    printf("[Schedule] Joining threads\n");
 
     // Iterate over each thread
     for (size_t i = 0; i < thread_quantity; i++)
@@ -954,6 +958,11 @@ void *parallel_schedule_work ( parallel_schedule_work_parameter *p_parameter )
     parallel_schedule_thread *p_schedule_thread = p_parameter->p_thread;
     parallel_schedule_task   *i_task            = (void *) 0;
     
+    monitor_wait(&p_schedule->_lock);
+
+    // Set the running flag
+    p_schedule_thread->running = true;
+
     // Iterate through each task
     for (size_t i = 0; i < p_schedule_thread->task_quantity; i++)
     {
@@ -968,7 +977,7 @@ void *parallel_schedule_work ( parallel_schedule_work_parameter *p_parameter )
         done:
 
         // Run the task
-        i_task->pfn_task((void *) 0);
+        i_task->pfn_task(p_parameter->p_thread->_name);
         
         // Signal
         if ( i_task->dependency ) monitor_notify_all(&i_task->_monitor);
