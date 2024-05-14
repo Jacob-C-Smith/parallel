@@ -142,7 +142,7 @@ int main ( int argc, const char *argv[] )
     if ( parallel_init() == 0 ) goto failed_to_initialize_parallel;
 
     // Formatting
-    printf(
+    log_info(
         "╭──────────────────╮\n"\
         "│ parallel example │\n"\
         "╰──────────────────╯\n"\
@@ -162,13 +162,13 @@ int main ( int argc, const char *argv[] )
     if ( examples_to_run[PARALLEL_THREAD_EXAMPLE] )
 
         // Error check
-        ;//if ( parallel_thread_example(argc, argv) == 0 ) goto failed_to_run_thread_example;
+        if ( parallel_thread_example(argc, argv) == 0 ) goto failed_to_run_thread_example;
 
     // Run the thread pool example program
     if ( examples_to_run[PARALLEL_THREAD_POOL_EXAMPLE] )
 
         // Error check
-        ;//if ( parallel_thread_pool_example(argc, argv) == 0 ) goto failed_to_run_thread_pool_example;
+        if ( parallel_thread_pool_example(argc, argv) == 0 ) goto failed_to_run_thread_pool_example;
 
     // Run the schedule example program
     if ( examples_to_run[PARALLEL_SCHEDULE_EXAMPLE] )
@@ -308,7 +308,7 @@ int parallel_thread_example ( int argc, const char *argv[] )
     (void) argv;
 
     // Formatting
-    printf(
+    log_info(
         "╭────────────────╮\n"\
         "│ thread example │\n"\
         "╰────────────────╯\n"\
@@ -326,19 +326,15 @@ int parallel_thread_example ( int argc, const char *argv[] )
 
     // Start some threads
     for (size_t i = 0; i < PARALLEL_THREADS_QUANTITY; i++)
-    {
 
         // Start a thread
         if ( parallel_thread_start(&_p_parallel_threads[i], print_something_to_standard_out, (void *) i) == 0 ) goto failed_to_start_thread;
-    }
 
     // Wait for the threads to finish
     for (size_t i = 0; i < PARALLEL_THREADS_QUANTITY; i++)
-    {
 
         // Wait for the threads to finish
         if ( parallel_thread_join(&_p_parallel_threads[i]) == 0 ) goto failed_to_join_thread;
-    }
 
     // Example formatting
     putchar('\n');
@@ -378,7 +374,7 @@ int parallel_thread_pool_example ( int argc, const char *argv[] )
     (void) argv;
 
     // Formatting
-    printf(
+    log_info(
         "╭─────────────────────╮\n"\
         "│ thread pool example │\n"\
         "╰─────────────────────╯\n"\
@@ -388,15 +384,13 @@ int parallel_thread_pool_example ( int argc, const char *argv[] )
     // Initialized data
     thread_pool *p_thread_pool = (void *) 0;
     timestamp   *_timestamps[7] = { 0 };
-    
-    sleep(6);
-    
+        
     // Construct a thread pool
-    if ( thread_pool_construct(&p_thread_pool, 3) == 0 ) goto failed_to_construct_thread_pool;
+    //if ( thread_pool_construct(&p_thread_pool, 3) == 0 ) goto failed_to_construct_thread_pool;
 
     // Enqueue some tasks
-    for (size_t i = 1; i < 3; i++)
-        thread_pool_run(p_thread_pool, print_something_to_standard_out);
+    //for (size_t i = 1; i < 3; i++)
+    //    thread_pool_run(p_thread_pool, print_something_to_standard_out);
 
     // Wait for everything to finish
     //thread_pool_wait_idle(p_thread_pool);
@@ -428,7 +422,7 @@ int parallel_schedule_example ( int argc, const char *argv[] )
     (void) argv;
 
     // Formatting
-    printf(
+    log_info(
         "╭──────────────────╮\n"\
         "│ schedule example │\n"\
         "╰──────────────────╯\n"\
@@ -515,7 +509,7 @@ void *print_something_to_standard_out ( void *p_parameter )
     sleep(delay);
 
     // Print the parameter to standard out
-    log_info("Thread %d finished in %d seconds\n", p_parameter, delay); fflush(stdout);
+    printf("Thread %d finished in %d seconds\n", p_parameter, delay); fflush(stdout);
 
     // Flush standard out
     fflush(stdout);
@@ -528,7 +522,7 @@ void *alice_joke ( char *name )
 {
 
     // Alice's setup
-    printf("\nAlice > Did you hear the story about the claustrophobic astronaut?\n"); fflush(stdout);
+    printf("Alice > Did you hear the story about the claustrophobic astronaut?\n"); fflush(stdout);
     
     // Alice hesitates
     for (size_t i = 0; i < 3; i++)
@@ -560,8 +554,6 @@ void *bob_joke ( char *name )
     // Bob delivers the punchline
     printf("\nBob > A brick!\n"); fflush(stdout);
     
-    sleep(1);
-
     // Success
     return (void *) 1;
 }
