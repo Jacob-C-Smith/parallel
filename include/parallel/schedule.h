@@ -70,13 +70,13 @@ int parallel_schedule_load_as_json_value ( parallel_schedule **const pp_schedule
 /** !
  * Start running a schedule
  *
- * @param p_schedule the schedule
- *
+ * @param p_schedule  the schedule
+ * @param p_parameter this parameter is passed to each task
  * @sa stop_schedule
  *
  * @return 1 on success, 0 on error
  */
-DLLEXPORT int parallel_schedule_start ( parallel_schedule *const p_schedule );
+DLLEXPORT int parallel_schedule_start ( parallel_schedule *const p_schedule, void *const p_parameter );
 
 // Stop
 /** !

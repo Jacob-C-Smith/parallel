@@ -445,7 +445,7 @@ int parallel_schedule_example ( int argc, const char *argv[] )
     if ( parallel_schedule_load(&p_schedule, "schedule.json") == 0 ) goto failed_to_construct_schedule;
 
     // Start the schedule
-    if ( parallel_schedule_start(p_schedule) == 0 ) goto failed_to_start_schedule;
+    if ( parallel_schedule_start(p_schedule, 0) == 0 ) goto failed_to_start_schedule;
 
     // Stop the schedule
     if ( parallel_schedule_stop(p_schedule) == 0 ) goto failed_to_stop_schedule;
@@ -582,7 +582,7 @@ void *laugh ( char *who )
 {
 
     // Someone is laughing ...
-    printf("%s > Hahahaha\n", who); fflush(stdout);
+    printf("Hahahaha\n"); fflush(stdout);
 
     // ... for 1 second
     sleep(1);

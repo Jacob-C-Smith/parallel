@@ -56,8 +56,9 @@ struct parallel_schedule_work_parameter_s
 
 struct parallel_schedule_s
 {
-    dict *p_threads;
     monitor _lock;
+    dict *p_threads;
+    void *p_parameter;
     char  _name [PARALLEL_SCHEDULE_NAME_LENGTH];
     parallel_schedule_work_parameter _work_parameters[PARALLEL_SCHEDULE_MAX_THREADS];
 };
@@ -828,7 +829,7 @@ int parallel_schedule_thread_load_as_json_value ( parallel_schedule_thread **con
     }   
 }
 
-int parallel_schedule_start ( parallel_schedule *const p_schedule )
+int parallel_schedule_start ( parallel_schedule *const p_schedule, void *const p_parameter )
 {
 
     // Argument check
@@ -838,6 +839,9 @@ int parallel_schedule_start ( parallel_schedule *const p_schedule )
     size_t thread_quantity = dict_values(p_schedule->p_threads, 0);
     parallel_schedule_thread *_p_threads [PARALLEL_SCHEDULE_MAX_THREADS] = { 0 };
     bool ready = false;
+
+    // Store the parameter
+    p_schedule->p_parameter = p_parameter;
 
     // Store the threads from the schedule
     dict_values(p_schedule->p_threads, _p_threads);
@@ -1008,7 +1012,7 @@ void *parallel_schedule_work ( parallel_schedule_work_parameter *p_parameter )
         done:
 
         // Run the task
-        i_task->pfn_task(p_parameter->p_thread->_name);
+        i_task->pfn_task(p_parameter->p_schedule->p_parameter);
         
         // Signal
         if ( i_task->dependency ) monitor_notify_all(&i_task->_monitor);
