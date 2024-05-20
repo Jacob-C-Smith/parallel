@@ -254,7 +254,7 @@ int parallel_schedule_load ( parallel_schedule **pp_schedule, const char *const 
     load_file(path, p_file_contents, 0);
 
     // Parse the file into a json value
-    if ( parse_json_value(p_file_contents, 0, &p_value) == 0 ) goto failed_to_parse_json_value;
+    if ( json_value_parse(p_file_contents, 0, &p_value) == 0 ) goto failed_to_parse_json_value;
 
     // Construct a schedule
     if ( parallel_schedule_load_as_json_value(pp_schedule, p_value) == 0 ) goto failed_to_construct_schedule;
@@ -1111,7 +1111,7 @@ size_t load_file ( const char *path, void *buffer, bool binary_mode )
         {
             no_path:
                 #ifndef NDEBUG
-                    printf("[JSON] Null path provided to function \"%s\n", __FUNCTION__);
+                    printf("[parallel] Null path provided to function \"%s\n", __FUNCTION__);
                 #endif
 
             // Error

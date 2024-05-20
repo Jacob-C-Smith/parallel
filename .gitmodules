@@ -4,9 +4,6 @@
 [submodule "extern/dict"]
 	path = extern/dict
 	url = https://github.com/Jacob-C-Smith/dict
-[submodule "extern/crypto"]
-	path = extern/crypto
-	url = https://github.com/Jacob-C-Smith/crypto
 [submodule "extern/json"]
 	path = extern/json
 	url = https://github.com/Jacob-C-Smith/json
@@ -19,3 +16,6 @@
 [submodule "extern/queue"]
 	path = extern/queue
 	url = https://github.com/Jacob-C-Smith/queue
+[submodule "extern/hash-cache"]
+	path = extern/hash-cache
+	url = https://github.com/Jacob-C-Smith/hash-cache

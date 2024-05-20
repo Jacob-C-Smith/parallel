@@ -15,32 +15,44 @@ static dict *parallel_parallel_tasks = 0;
 // Forward declarations
 void parallel_quit ( void );
 
-int parallel_init ( void ) 
+// Data
+static bool initialized = false;
+
+void parallel_init ( void ) 
 {
 
-    // Initialize log
-    if ( log_init(0, true) == 0 ) goto failed_to_init_log;
+    // State check
+    if ( initialized == true ) return;
+
+    // Initialize the log library
+    log_init();
+
+    // Initialize the sync library
+    sync_init();
+
+    // Initialize the hash cache library
+    hash_cache_init();
+
+    // Initialize the array library
+    array_init();
+
+    // Initialize the dict library
+    dict_init();
+
+    // Initialize the queue library
+    queue_init();
+
+    // Initialize the json library
+    json_init();
 
     // Construct a dictionary for parallel tasks
     dict_construct(&parallel_parallel_tasks, 256, 0);
 
-    // Success
-    return 1;
+    // Set the initialized flag
+    initialized = true;
 
-    // Error handling
-    {
-
-        // log errors
-        {
-            failed_to_init_log:
-                #ifndef NDEBUG
-                    printf("[parallel] Failed to initialize log\n");
-                #endif
-
-                // Error
-                return 0;
-        }
-    }
+    // Done
+    return;
 }
 
 int parallel_register_task ( const char *const name, fn_parallel_task *pfn_parallel_task )
@@ -67,9 +79,39 @@ int parallel_find_task ( const char *const name, fn_parallel_task **p_pfn_parall
     return 1;
 }
 
-void parallel_quit ( void )
+void parallel_exit ( void )
 {
 
-    // Clean up
+    // State check
+    if ( initialized == false ) return;
+
+    // Clean up the log library
+    log_exit();
+
+    // Clean up the sync library
+    sync_exit();
+
+    // Clean up the hash cache library
+    hash_cache_exit();
+
+    // Clean up the array library
+    array_exit();
+
+    // Clean up the dict library
+    dict_exit();
+
+    // Initialize the queue library
+    queue_exit();
+
+    // Clean up the json library
+    json_exit();
+
+    // Destroy the task registery
     dict_destroy(&parallel_parallel_tasks);
+
+    // Clear the initialized flag
+    initialized = false;
+
+    // Done
+    return;
 }

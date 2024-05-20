@@ -131,15 +131,12 @@ void *laugh ( char *who );
 // Entry point
 int main ( int argc, const char *argv[] )
 {
-    
+
     // Initialized data
     bool examples_to_run[PARALLEL_EXAMPLES_QUANTITY] = { 0 };
 
     // Parse command line arguments
     parse_command_line_arguments(argc, argv, examples_to_run);
-
-    // Initialize parallel
-    if ( parallel_init() == 0 ) goto failed_to_initialize_parallel;
 
     // Formatting
     log_info(
@@ -176,27 +173,15 @@ int main ( int argc, const char *argv[] )
         // Error check
         if ( parallel_schedule_example(argc, argv) == 0 ) goto failed_to_run_schedule_example;
 
-    // Clean up parallel
-    parallel_quit();
-
     // Success
     return EXIT_SUCCESS;
 
     // Error handling
     {
-        
-        failed_to_initialize_parallel:
-
-            // Write an error message to standard out
-            printf("Failed to initialize parallel!\n");
-
-            // Error
-            return EXIT_FAILURE;
-
         failed_to_run_thread_example:
 
             // Print an error message
-            printf("Failed to run thread example!\n");
+            log_error("Error: Failed to run thread example!\n");
 
             // Error
             return EXIT_FAILURE;
@@ -204,7 +189,7 @@ int main ( int argc, const char *argv[] )
         failed_to_run_thread_pool_example:
 
             // Print an error message
-            printf("Failed to run thread pool example!\n");
+            log_error("Error: Failed to run thread pool example!\n");
 
             // Error
             return EXIT_FAILURE;
@@ -212,7 +197,7 @@ int main ( int argc, const char *argv[] )
         failed_to_run_schedule_example:
             
             // Print an error message
-            printf("Failed to run schedule example!\n");
+            log_error("Error: Failed to run schedule example!\n");
 
             // Error
             return EXIT_FAILURE;   
@@ -509,7 +494,7 @@ void *print_something_to_standard_out ( void *p_parameter )
     sleep(delay);
 
     // Print the parameter to standard out
-    printf("Thread %d finished in %d seconds\n", p_parameter, delay); fflush(stdout);
+    printf("Thread %d finished in %d seconds\n", (int) p_parameter, delay); fflush(stdout);
 
     // Flush standard out
     fflush(stdout);

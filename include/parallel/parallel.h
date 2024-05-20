@@ -68,13 +68,13 @@ typedef void   *(fn_parallel_task)(void *p_parameter);
 
 // Initializers
 /** !
- *  Initialize parallel 
+ * This gets called at runtime before main. 
  * 
  * @param void
  * 
- * @return 1 on success, 0 on error 
- */ 
-DLLEXPORT int parallel_init ( void );
+ * @return void
+ */
+DLLEXPORT void parallel_init ( void ) __attribute__((constructor));
 
 /** !
  * Register a task with the scheduler
@@ -89,4 +89,12 @@ DLLEXPORT int parallel_init ( void );
 DLLEXPORT int parallel_register_task ( const char *const name, fn_parallel_task *pfn_parallel_task );
 DLLEXPORT int parallel_find_task ( const char *const name, fn_parallel_task **p_pfn_parallel_task );
 
-DLLEXPORT void parallel_quit ( void );
+// Cleanup
+/** !
+ * This gets called at runtime after main
+ * 
+ * @param void
+ * 
+ * @return void
+ */
+DLLEXPORT void parallel_exit ( void ) __attribute__((destructor));
