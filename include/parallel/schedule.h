@@ -24,6 +24,9 @@
 // json
 #include <json/json.h>
 
+// array
+#include <array/array.h>
+
 // parallel
 #include <parallel/parallel.h>
 #include <parallel/thread.h>

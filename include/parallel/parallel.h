@@ -24,6 +24,15 @@
 // dict
 #include <dict/dict.h>
 
+// queue
+#include <queue/queue.h>
+
+// array
+#include <array/array.h>
+
+// json
+#include <json/json.h>
+
 // Platform dependent macros
 #ifdef _WIN64
 #define DLLEXPORT extern __declspec(dllexport)
