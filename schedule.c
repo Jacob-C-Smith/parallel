@@ -58,6 +58,7 @@ struct parallel_schedule_s
 {
     monitor _lock;
     dict *p_threads;
+    bool repeat;
     void *p_parameter;
     char  _name [PARALLEL_SCHEDULE_NAME_LENGTH];
     parallel_schedule_work_parameter _work_parameters[PARALLEL_SCHEDULE_MAX_THREADS];
@@ -344,7 +345,8 @@ int parallel_schedule_load_as_json_value ( parallel_schedule **const pp_schedule
     // Initialized data
     dict *p_dict = p_value->object;
     const json_value *const p_name    = dict_get(p_dict, "name"),
-                     *const p_threads = dict_get(p_dict, "threads");
+                     *const p_threads = dict_get(p_dict, "threads"),
+                     *const p_repeat  = dict_get(p_dict, "repeat");
     parallel_schedule  _schedule  = { 0 }, 
                       *p_schedule = (void *) 0;
 
@@ -413,6 +415,20 @@ int parallel_schedule_load_as_json_value ( parallel_schedule **const pp_schedule
 
     // Default
     else goto wrong_threads_type;
+
+    // Jump ahead
+    if ( p_repeat == (void *) 0 ) goto no_repeat_property;
+
+    // Parse the repeat property
+    if ( p_repeat->type == JSON_VALUE_BOOLEAN ) 
+
+        // Store the repeat property
+        _schedule.repeat = p_repeat->boolean;
+
+    // Default
+    else goto wrong_repeat_type;
+
+    no_repeat_property:
 
     // Validate the schedule
     {
@@ -554,6 +570,14 @@ int parallel_schedule_load_as_json_value ( parallel_schedule **const pp_schedule
             wrong_threads_type:
                 #ifndef NDEBUG
                     log_error("[parallel] [schedule] \"threads\" property of schedule object must be of type [ object ] in call to function \"%s\"\n\"Refer to schedule schema: [TODO: Schedule schema URL] \n", __FUNCTION__);
+                #endif
+
+                // Error
+                return 0;
+
+            wrong_repeat_type:
+                #ifndef NDEBUG
+                    log_error("[parallel] [schedule] \"repeat\" property of schedule object must be of type [ boolean ] in call to function \"%s\"\n\"Refer to schedule schema: [TODO: Schedule schema URL] \n", __FUNCTION__);
                 #endif
 
                 // Error
@@ -924,6 +948,9 @@ int parallel_schedule_stop ( parallel_schedule *const p_schedule )
     size_t thread_quantity = dict_values(p_schedule->p_threads, 0);
     parallel_schedule_thread *_p_threads[PARALLEL_SCHEDULE_MAX_THREADS] = { 0 };
 
+    // Clear the repeat flag
+    p_schedule->repeat = false;
+
     // Store the threads from the schedule
     dict_values(p_schedule->p_threads, _p_threads);
 
@@ -998,6 +1025,8 @@ void *parallel_schedule_work ( parallel_schedule_work_parameter *p_parameter )
     // Wait for the signal
     monitor_wait(&p_schedule->_lock);
 
+    turnover:
+
     // Iterate through each task
     for (size_t i = 0; i < p_schedule_thread->task_quantity; i++)
     {
@@ -1018,6 +1047,9 @@ void *parallel_schedule_work ( parallel_schedule_work_parameter *p_parameter )
         if ( i_task->dependency ) monitor_notify_all(&i_task->_monitor);
     }
     
+    // Repeat?
+    if ( p_schedule->repeat ) goto turnover;
+
     // Success
     return (void *) 1;
 
