@@ -137,6 +137,60 @@ int parallel_thread_start ( parallel_thread **pp_parallel_thread, fn_parallel_ta
     }
 }
 
+int parallel_thread_cancel ( parallel_thread *p_parallel_thread )
+{
+
+    // Argument check
+    if ( p_parallel_thread == (void *) 0 ) goto no_parallel_thread;
+
+    // Platform dependent implementation
+    #ifdef _WIN64
+
+        // TODO:
+        //
+
+    #else
+        if ( pthread_cancel(p_parallel_thread->platform_dependent_thread) ) goto failed_to_cancel_parallel_thread;
+    #endif
+
+    // Success
+    return 1;
+
+    // Error handling
+    {
+
+        // Argument errors
+        {
+            no_parallel_thread:
+                #ifndef NDEBUG
+                    log_error("[parallel] [thread] Null pointer provided for parameter \"pp_parallel_thread\" in call to function \"%s\"\n", __FUNCTION__);
+                #endif
+
+                // Error
+                return 0;
+            
+            no_function_pointer:
+                #ifndef NDEBUG
+                    log_error("[parallel] [thread] Null pointer provided for parameter \"pfn_function_pointer\" in call to function \"%s\"\n", __FUNCTION__);
+                #endif
+
+                // Error
+                return 0;
+        }
+
+        // pthread errors
+        {
+            failed_to_cancel_parallel_thread:
+                #ifndef NDEBUG
+                    log_error("[parallel] [thread] Call to \"pthread_cancel\" returned an erroneous value in call to function \"%s\"\n", __FUNCTION__);
+                #endif
+
+                // Error
+                return 0;
+        }
+    }
+}
+
 int parallel_thread_join ( parallel_thread **pp_parallel_thread )
 {
 

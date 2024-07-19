@@ -60,6 +60,16 @@ DLLEXPORT int parallel_thread_create ( parallel_thread **pp_parallel_thread );
  */
 DLLEXPORT int parallel_thread_start ( parallel_thread **pp_parallel_thread, fn_parallel_task *pfn_task, void *p_parameter );
 
+// Cancel
+/** !
+ * Stop a thread
+ * 
+ * @param p_parallel_thread the thread
+ * 
+ * @return 1 on success, 0 on error
+ */
+DLLEXPORT int parallel_thread_cancel ( parallel_thread *p_parallel_thread );
+
 // Stop
 /** !
  *  Wait for a thread to end, then destory it
