@@ -70,6 +70,17 @@ DLLEXPORT int parallel_thread_start ( parallel_thread **pp_parallel_thread, fn_p
  */
 DLLEXPORT int parallel_thread_cancel ( parallel_thread *p_parallel_thread );
 
+// Signal
+/** !
+ * Send a signal to a thread
+ * 
+ * @param p_parallel_thread the thread
+ * @param signal            the signal
+ * 
+ * @return 1 on success, 0 on error
+ */
+DLLEXPORT int parallel_thread_signal ( parallel_thread *p_parallel_thread, int signal );
+
 // Stop
 /** !
  *  Wait for a thread to end, then destory it
