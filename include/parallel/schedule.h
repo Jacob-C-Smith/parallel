@@ -81,6 +81,25 @@ int parallel_schedule_load_as_json_value ( parallel_schedule **const pp_schedule
  */
 DLLEXPORT int parallel_schedule_start ( parallel_schedule *const p_schedule, void *const p_parameter );
 
+// Wait idle
+/** !
+ * Block until a schedule is done
+ * 
+ * @param p_schedule the schedule
+ * 
+ * @return 1 on success, 0 on error
+ */
+DLLEXPORT int parallel_schedule_wait_idle ( parallel_schedule *const p_schedule );
+
+/** !
+ * Clear a schedule's repeat flag
+ * 
+ * @param p_schedule the schedule
+ * 
+ * @return 1 on success, 0 on error
+ */
+DLLEXPORT int parallel_schedule_pause ( parallel_schedule *const p_schedule );
+
 // Stop
 /** !
  * Stop running a schedule

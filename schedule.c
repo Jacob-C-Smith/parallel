@@ -56,11 +56,14 @@ struct parallel_schedule_work_parameter_s
 
 struct parallel_schedule_s
 {
-    monitor _lock;
+    monitor _montior;
+    mutex _lock;
+    size_t running_threads;
     dict *p_threads;
     bool repeat;
     void *p_parameter;
     char  _name [PARALLEL_SCHEDULE_NAME_LENGTH];
+    char  _main_thread_name [PARALLEL_SCHEDULE_THREAD_NAME_LENGTH];
     parallel_schedule_work_parameter _work_parameters[PARALLEL_SCHEDULE_MAX_THREADS];
 };
 
@@ -101,11 +104,20 @@ int parallel_schedule_thread_load_as_json_value ( parallel_schedule_thread **con
 /** !
  * Worker thread loop
  * 
- * @param p_thread who am I?
+ * @param p_parameter who am I?
  * 
  * @return ret
  */
 void *parallel_schedule_work ( parallel_schedule_work_parameter *p_parameter );
+
+/** !
+ * Main thread loop
+ * 
+ * @param p_parameter who am I?
+ * 
+ * @return ret
+ */
+void *parallel_schedule_main_work ( parallel_schedule_work_parameter *p_parameter );
 
 // TODO: Document
 int parallel_schedule_thread_destroy ( parallel_schedule_thread **pp_thread );
@@ -344,9 +356,10 @@ int parallel_schedule_load_as_json_value ( parallel_schedule **const pp_schedule
 
     // Initialized data
     dict *p_dict = p_value->object;
-    const json_value *const p_name    = dict_get(p_dict, "name"),
-                     *const p_threads = dict_get(p_dict, "threads"),
-                     *const p_repeat  = dict_get(p_dict, "repeat");
+    const json_value *const p_name        = dict_get(p_dict, "name"),
+                     *const p_threads     = dict_get(p_dict, "threads"),
+                     *const p_main_thread = dict_get(p_dict, "main thread"),
+                     *const p_repeat      = dict_get(p_dict, "repeat");
     parallel_schedule  _schedule  = { 0 }, 
                       *p_schedule = (void *) 0;
 
@@ -371,10 +384,33 @@ int parallel_schedule_load_as_json_value ( parallel_schedule **const pp_schedule
         // Null terminate the copied string
         _schedule._name[len] = '\0';
     } 
+    
+    // Error check
+    if ( p_main_thread == (void *) 0 ) goto no_main_thread; 
+
+    // Parse the main thread property
+    if ( p_main_thread->type == JSON_VALUE_STRING )
+    {
+
+        // Initialized data
+        char   *p_main_thread_string = p_main_thread->string;
+        size_t  len                  = strlen(p_main_thread_string);
+        
+        // Error check
+        if ( len < 1 ) goto main_thread_property_too_short;
+        if ( len > PARALLEL_SCHEDULE_THREAD_NAME_LENGTH ) goto main_thread_property_too_long;
+        
+        // Copy the name into the schedule struct
+        strncpy(_schedule._main_thread_name, p_main_thread_string, len);
+
+        // Null terminate the copied string
+        _schedule._main_thread_name[len] = '\0';
+    } 
 
     // Default
-    else goto wrong_name_type;
-
+    else goto wrong_main_thread_type;
+    
+    no_main_thread:
     // Parse the threads property
     if ( p_threads->type == JSON_VALUE_OBJECT )
     {
@@ -511,7 +547,10 @@ int parallel_schedule_load_as_json_value ( parallel_schedule **const pp_schedule
     memcpy(p_schedule, &_schedule, sizeof(parallel_schedule));
 
     // Construct a monitor for the schedule
-    monitor_create(&p_schedule->_lock);
+    monitor_create(&p_schedule->_montior);
+
+    // Construct a mutex for the schedule
+    mutex_create(&p_schedule->_lock);
 
     // Return a pointer to the caller
     *pp_schedule = p_schedule;
@@ -575,6 +614,14 @@ int parallel_schedule_load_as_json_value ( parallel_schedule **const pp_schedule
                 // Error
                 return 0;
 
+            wrong_main_thread_type:
+                #ifndef NDEBUG
+                    log_error("[parallel] [schedule] \"main thread\" property of schedule object must be of type [ object ] in call to function \"%s\"\n\"Refer to schedule schema: [TODO: Schedule schema URL] \n", __FUNCTION__);
+                #endif
+
+                // Error
+                return 0;
+
             wrong_repeat_type:
                 #ifndef NDEBUG
                     log_error("[parallel] [schedule] \"repeat\" property of schedule object must be of type [ boolean ] in call to function \"%s\"\n\"Refer to schedule schema: [TODO: Schedule schema URL] \n", __FUNCTION__);
@@ -599,6 +646,22 @@ int parallel_schedule_load_as_json_value ( parallel_schedule **const pp_schedule
                 // Error
                 return 0;
             
+            main_thread_property_too_short:
+                #ifndef NDEBUG
+                    log_error("[parallel] [schedule] \"main thread\" property of schedule object must be at least 1 character long in call to function \"%s\"\n\"Refer to schedule schema: [TODO: Schedule schema URL] \n", __FUNCTION__);
+                #endif
+
+                // Error
+                return 0;
+
+            main_thread_property_too_long:
+                #ifndef NDEBUG
+                    log_error("[parallel] [schedule] \"main thread\" property of schedule object must be less than %d characters in call to function \"%s\"\n\"Refer to schedule schema: [TODO: Schedule schema URL] \n", PARALLEL_SCHEDULE_THREAD_NAME_LENGTH, __FUNCTION__);
+                #endif
+
+                // Error
+                return 0;
+
             threads_property_is_empty:
                 #ifndef NDEBUG
                     log_error("[parallel] [schedule] \"threads\" property of schedule object must contain at least 1 property in call to function \"%s\"\n\"Refer to schedule schema: [TODO: Schedule schema URL] \n", __FUNCTION__);
@@ -862,6 +925,8 @@ int parallel_schedule_start ( parallel_schedule *const p_schedule, void *const p
     // Initialized data
     size_t thread_quantity = dict_values(p_schedule->p_threads, 0);
     parallel_schedule_thread *_p_threads [PARALLEL_SCHEDULE_MAX_THREADS] = { 0 };
+    parallel_schedule_thread *p_main_thread = (void *)0;
+    parallel_schedule_work_parameter *p_main_thread_work_parameter = (void *) 0;
     bool ready = false;
 
     // Store the parameter
@@ -884,30 +949,46 @@ int parallel_schedule_start ( parallel_schedule *const p_schedule, void *const p
             .p_thread   = p_thread
         };
 
+        // Skip main thread
+        if ( strcmp(p_schedule->_main_thread_name, p_thread->_name) == 0 )
+        {
+
+            // Store the main thread
+            p_main_thread = p_thread;
+
+            // Store the work parameter
+            p_main_thread_work_parameter = &p_schedule->_work_parameters[i];
+
+            // Done 
+            continue;
+        }
+        
         // Spawn the thread
         if ( parallel_thread_start(&p_thread->p_parallel_thread, (fn_parallel_task *) parallel_schedule_work, &p_schedule->_work_parameters[i]) == 0 ) goto failed_to_create_thread;
-
-        // TODO: Set the name of the thread
-        //
     }
-
-    // Spin until all the worker threads are ready
-    while ( ready == false )
+    
+    // Start the main thread
+    if ( p_main_thread )
     {
 
-        // Set the ready flag
-        ready = true;
+        // Wait for all the threads to start        
+        while ( p_schedule->running_threads != thread_quantity - 1 );
 
-        // If a thread isn't running...
-        for (size_t i = 0; i < thread_quantity; i++)
-
-            // ... clear the ready flag
-            ready &= _p_threads[i]->running;
+        // Start the main thread
+        parallel_schedule_main_work(p_main_thread_work_parameter);
     }
     
-    // Start the work
-    monitor_notify_all(&p_schedule->_lock);
-    
+    // Start the worker threads
+    else 
+    {
+
+        // Wait for all the threads to start        
+        while ( p_schedule->running_threads != thread_quantity );
+
+        // Start the worker threads
+        monitor_notify_all(&p_schedule->_montior);
+    }
+
     // Success
     return 1;
 
@@ -938,6 +1019,26 @@ int parallel_schedule_start ( parallel_schedule *const p_schedule, void *const p
     }
 }
 
+int parallel_schedule_wait_idle ( parallel_schedule *const p_schedule )
+{
+    
+    // Spin until all threads are done
+    while (p_schedule->running_threads);
+
+    // Success
+    return 1;
+}
+
+int parallel_schedule_pause ( parallel_schedule *const p_schedule )
+{
+
+    // Clear the repeat flag
+    p_schedule->repeat = false;
+
+    // Success
+    return 1;
+} 
+
 int parallel_schedule_stop ( parallel_schedule *const p_schedule )
 {
 
@@ -961,8 +1062,14 @@ int parallel_schedule_stop ( parallel_schedule *const p_schedule )
         // Initialized data
         parallel_schedule_thread *p_thread = _p_threads[i];
 
+        // Skip the main thread
+        if ( strcmp(p_schedule->_main_thread_name, p_thread->_name) == 0 ) continue;
+
         // Clear the running flag
         p_thread->running = false;
+
+        // Cancel the thread
+        parallel_thread_cancel(p_thread->p_parallel_thread);
 
         // Join the thread
         if ( parallel_thread_join(&p_thread->p_parallel_thread) == 0 ) goto failed_to_destroy_thread;
@@ -1019,11 +1126,20 @@ void *parallel_schedule_work ( parallel_schedule_work_parameter *p_parameter )
     parallel_schedule_thread *p_schedule_thread = p_parameter->p_thread;
     parallel_schedule_task   *i_task            = (void *) 0;
     
+    // Lock
+    mutex_lock(&p_schedule->_lock);
+
     // Set the running flag
     p_schedule_thread->running = true;
 
+    // Increment the quantity of running threads
+    p_schedule->running_threads++;
+
+    // Unlock
+    mutex_unlock(&p_schedule->_lock);
+
     // Wait for the signal
-    monitor_wait(&p_schedule->_lock);
+    monitor_wait(&p_schedule->_montior);
 
     turnover:
 
@@ -1049,6 +1165,138 @@ void *parallel_schedule_work ( parallel_schedule_work_parameter *p_parameter )
     
     // Repeat?
     if ( p_schedule->repeat ) goto turnover;
+
+    // Lock
+    mutex_lock(&p_schedule->_lock);
+
+    // Clear the running flag
+    p_schedule_thread->running = false;
+
+    // Decrement the quantity of running threads
+    p_schedule->running_threads--;
+
+    // Unlock
+    mutex_unlock(&p_schedule->_lock);
+
+    // Success
+    return (void *) 1;
+
+    wait_logic:
+    {
+
+        // Initialized data
+        char *thread_name = i_task->_wait_thread;
+        const parallel_schedule_thread *const p_schedule_thread = dict_get(p_schedule->p_threads, thread_name);
+        
+        // Find the monitor 
+        for (size_t i = 0; i < p_schedule_thread->task_quantity; i++)
+        {
+        
+            // Check the monitor
+            if ( strcmp(p_schedule_thread->tasks[i]._name, i_task->_wait_task) == 0 ) 
+            {
+
+                // Wait
+                monitor_wait(&p_schedule_thread->tasks[i]._monitor);
+
+                // Done
+                goto done;
+            }
+        }
+
+        // Default
+        goto failed_to_find_monitor;
+    }
+
+    // Error handling
+    {
+
+        // Argument errors
+        {
+            no_work_parameter:
+                #ifndef NDEBUG
+                    log_error("[parallel] [schedule] Null pointer provided for parameter \"p_parameter\" in call to function \"%s\"\n", __FUNCTION__);
+                #endif
+
+                // Error
+                return 0;
+        }
+
+        // Parallel errors
+        {
+            failed_to_find_monitor:
+                #ifndef NDEBUG
+                    log_error("[parallel] [schedule] Failed to find monitor for dependant task on thread\"%s\" in call to function \"%s\"\n", p_schedule_thread->_name, __FUNCTION__);
+                #endif
+
+                // Error
+                return 0;
+        }
+    }
+}
+
+void *parallel_schedule_main_work ( parallel_schedule_work_parameter *p_parameter )
+{
+
+    // Argument check
+    if ( p_parameter == (void *) 0 ) goto no_work_parameter;
+
+    // Initialized data
+    parallel_schedule        *p_schedule        = p_parameter->p_schedule;
+    parallel_schedule_thread *p_schedule_thread = p_parameter->p_thread;
+    parallel_schedule_task   *i_task            = (void *) 0;
+    
+    // Lock
+    mutex_lock(&p_schedule->_lock);
+
+    // Set the running flag
+    p_schedule_thread->running = true;
+
+    // Increment the quantity of running threads
+    p_schedule->running_threads++;
+
+    // Unlock
+    mutex_unlock(&p_schedule->_lock);
+
+    // Start the work
+    monitor_notify_all(&p_schedule->_montior);
+    
+    turnover:
+
+    // Iterate through each task
+    for (size_t i = 0; i < p_schedule_thread->task_quantity; i++)
+    {
+
+        // Initialized data
+        i_task = &p_schedule_thread->tasks[i];
+
+        // Wait
+        if ( i_task->dependent ) goto wait_logic;
+
+        // Done waiting
+        done:
+
+        // Run the task
+        i_task->pfn_task(p_parameter->p_schedule->p_parameter);
+        
+        // Signal
+        if ( i_task->dependency ) monitor_notify_all(&i_task->_monitor);
+    }
+    
+    // Repeat?
+    if ( p_schedule->repeat ) goto turnover;
+
+    // Lock
+    mutex_lock(&p_schedule->_lock);
+
+    // Clear the running flag
+    p_schedule_thread->running = false;
+
+    // Decrement the quantity of running threads
+    p_schedule->running_threads--;
+
+    // Unlock
+    mutex_unlock(&p_schedule->_lock);
 
     // Success
     return (void *) 1;
