@@ -1,9 +1,9 @@
 /** !
- * @file parallel/parallel.h
- * 
- * @author Jacob C Smith
- *
  * High level abstractions for parallelized computing
+ * 
+ * @file parallel/parallel.h
+ *
+ * @author Jacob Smith
  */
 
 // Include guard
@@ -37,7 +37,7 @@ struct parallel_thread_s
 /** !
  *  Allocate a parallel thread
  *
- * @param p_thread : return
+ * @param p_thread return
  * 
  * @sa parallel_thread_start
  *
@@ -70,17 +70,6 @@ DLLEXPORT int parallel_thread_start ( parallel_thread **pp_parallel_thread, fn_p
  */
 DLLEXPORT int parallel_thread_cancel ( parallel_thread *p_parallel_thread );
 
-// Signal
-/** !
- * Send a signal to a thread
- * 
- * @param p_parallel_thread the thread
- * @param signal            the signal
- * 
- * @return 1 on success, 0 on error
- */
-DLLEXPORT int parallel_thread_signal ( parallel_thread *p_parallel_thread, int signal );
-
 // Stop
 /** !
  *  Wait for a thread to end, then destory it
@@ -97,7 +86,7 @@ DLLEXPORT int parallel_thread_join ( parallel_thread **pp_parallel_thread );
 /** !
  *  Destroy a thread
  *
- * @param pp_parallel_thread : Pointer to a parallel thread pointer
+ * @param pp_parallel_thread pointer to a parallel thread pointer
  *
  * @sa parallel_thread_create
  *
