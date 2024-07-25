@@ -95,38 +95,38 @@ void *print_something_to_standard_out ( void *p_parameter );
 /** !
  * Alice tells a joke
  * 
- * @param name "Alice"
+ * @param null_pointer 0
  * 
  * @return void
  */
-void *alice_joke ( char *name );
+void *alice_joke ( void *null_pointer );
 
 /** !
  * Bob tells a joke
  * 
- * @param name "Bob"
+ * @param null_pointer 0
  * 
  * @return void
  */
-void *bob_joke ( char *name );
+void *bob_joke ( void *null_pointer );
 
 /** !
  * Charlie tells a joke
  * 
- * @param name "Charlie"
+ * @param null_pointer 0
  * 
  * @return void
  */
-void *charlie_joke ( char *name );
+void *charlie_joke ( void *null_pointer );
 
 /** !
  * Someone starts laughing
  * 
- * @param who the someone in question
+ * @param null_pointer 0
  * 
  * @return void
 */
-void *laugh ( char *who );
+void *laugh ( void *null_pointer );
 
 // Entry point
 int main ( int argc, const char *argv[] )
@@ -431,6 +431,9 @@ int parallel_schedule_example ( int argc, const char *argv[] )
 
     // Start the schedule
     if ( parallel_schedule_start(p_schedule, 0) == 0 ) goto failed_to_start_schedule;
+    
+    // Wait idle
+    parallel_schedule_wait_idle(p_schedule);
 
     // Stop the schedule
     if ( parallel_schedule_stop(p_schedule) == 0 ) goto failed_to_stop_schedule;
@@ -503,7 +506,7 @@ void *print_something_to_standard_out ( void *p_parameter )
     return 0;
 }
 
-void *alice_joke ( char *name )
+void *alice_joke ( void *null_pointer )
 {
 
     // Alice's setup
@@ -523,7 +526,7 @@ void *alice_joke ( char *name )
     return (void *) 1;
 }
 
-void *bob_joke ( char *name )
+void *bob_joke ( void *null_pointer )
 {
 
     // Bob's setup
@@ -543,7 +546,7 @@ void *bob_joke ( char *name )
     return (void *) 1;
 }
 
-void *charlie_joke ( char *name )
+void *charlie_joke ( void *null_pointer )
 {
 
     // Charlie's setup
@@ -563,7 +566,7 @@ void *charlie_joke ( char *name )
     return (void *) 1;
 }
 
-void *laugh ( char *who )
+void *laugh ( void *null_pointer )
 {
 
     // Someone is laughing ...
