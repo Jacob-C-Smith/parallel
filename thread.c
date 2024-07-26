@@ -150,7 +150,7 @@ int parallel_thread_cancel ( parallel_thread *p_parallel_thread )
         //
 
     #else
-        if ( pthread_cancel(p_parallel_thread->platform_dependent_thread) ) goto failed_to_cancel_parallel_thread;
+        pthread_cancel(p_parallel_thread->platform_dependent_thread);
     #endif
 
     // Success

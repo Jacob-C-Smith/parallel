@@ -139,17 +139,14 @@ int main ( int argc, const char *argv[] )
     parse_command_line_arguments(argc, argv, examples_to_run);
 
     // Formatting
-    log_info(
-        "╭──────────────────╮\n"\
-        "│ parallel example │\n"\
-        "╰──────────────────╯\n"\
-        "The parallel library provides high level abstractions for parallel computing.\n"\
-        "Parallel provides %d abstractions. The thread, the thread pool, and the schedule.\n\n"\
-        "A thread is the most primitive abstraction in parallel computing.\n"\
-        "A thread pool is an abstraction for a collection of threads.\n"\
-        "A schedule is an abstraction for coordinating logical units of work over time. \n\n",
-        PARALLEL_EXAMPLES_QUANTITY
-    );
+    log_info("╭──────────────────╮\n");
+    log_info("│ parallel example │\n");
+    log_info("╰──────────────────╯\n");
+    log_info("The parallel library provides high level abstractions for parallel computing.\n");
+    log_info("Parallel provides %d abstractions. The thread, the thread pool, and the schedule.\n\n",PARALLEL_EXAMPLES_QUANTITY);
+    log_info("A thread is the most primitive abstraction in parallel computing.\n");
+    log_info("A thread pool is an abstraction for a collection of threads.\n");
+    log_info("A schedule is an abstraction for coordinating logical units of work over time. \n\n");
 
     //////////////////////
     // Run the examples //
@@ -293,15 +290,11 @@ int parallel_thread_example ( int argc, const char *argv[] )
     (void) argv;
 
     // Formatting
-    log_info(
-        "╭────────────────╮\n"\
-        "│ thread example │\n"\
-        "╰────────────────╯\n"\
-        "This example spawns %d threads. Each thread waits for [0, %d] seconds,\n"\
-        "and prints a message to standard out. The thread promptly terminates.\n\n",
-        PARALLEL_THREADS_QUANTITY,
-        PARALLEL_THREADS_MAX_DELAY
-    );
+    log_info("╭────────────────╮\n");
+    log_info("│ thread example │\n");
+    log_info("╰────────────────╯\n");
+    log_info("This example spawns %d threads. Each thread waits for [0, %d] seconds,\n", PARALLEL_THREADS_QUANTITY, PARALLEL_THREADS_MAX_DELAY);
+    log_info("and prints a message to standard out. The thread promptly terminates.\n\n");
 
     // Initialized data
     parallel_thread *_p_parallel_threads[PARALLEL_THREADS_QUANTITY] = { 0 };
@@ -359,12 +352,10 @@ int parallel_thread_pool_example ( int argc, const char *argv[] )
     (void) argv;
 
     // Formatting
-    log_info(
-        "╭─────────────────────╮\n"\
-        "│ thread pool example │\n"\
-        "╰─────────────────────╯\n"\
-        "This example [TODO: Describe example]\n\n"
-    );
+    log_info("╭─────────────────────╮\n");
+    log_info("│ thread pool example │\n");
+    log_info("╰─────────────────────╯\n");
+    log_info("This example [TODO: Describe example]\n\n");
 
     // Initialized data
     // thread_pool *p_thread_pool = (void *) 0;
@@ -407,15 +398,13 @@ int parallel_schedule_example ( int argc, const char *argv[] )
     (void) argv;
 
     // Formatting
-    log_info(
-        "╭──────────────────╮\n"\
-        "│ schedule example │\n"\
-        "╰──────────────────╯\n"\
-        "In this example, a group of three friends are telling jokes. First Alice, then \n"\
-        "Charlie, and finally Bob. Since it's rude to laugh while your friend is telling \n"\
-        "a joke, the listeners wait for the punchline before laughing. This demonstrates\n"\
-        "the most important features of the scheduler. Concurrency, and parallelism. \n\n"\
-    );
+    log_info("╭──────────────────╮\n");
+    log_info("│ schedule example │\n");
+    log_info("╰──────────────────╯\n");
+    log_info("In this example, a group of three friends are telling jokes. First Alice, then \n");
+    log_info("Charlie, and finally Bob. Since it's rude to laugh while your friend is telling \n");
+    log_info("a joke, the listeners wait for the punchline before laughing. This demonstrates\n");
+    log_info("the most important features of the scheduler. Concurrency, and parallelism. \n\n");
 
     // Initialized data
     parallel_schedule *p_schedule = (void *) 0;
@@ -431,8 +420,8 @@ int parallel_schedule_example ( int argc, const char *argv[] )
 
     // Start the schedule
     if ( parallel_schedule_start(p_schedule, 0) == 0 ) goto failed_to_start_schedule;
-    
-    // Wait idle
+
+    // Wait for the schedule to stop
     parallel_schedule_wait_idle(p_schedule);
 
     // Stop the schedule

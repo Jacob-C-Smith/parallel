@@ -1025,7 +1025,7 @@ int parallel_schedule_wait_idle ( parallel_schedule *const p_schedule )
 {
     
     // Spin until all threads are done
-    while (p_schedule->running_threads);
+    while (p_schedule->running_threads) sleep(0);
 
     // Success
     return 1;
@@ -1308,18 +1308,18 @@ void *parallel_schedule_main_work ( parallel_schedule_work_parameter *p_paramete
 
         // Initialized data
         char *thread_name = i_task->_wait_thread;
-        const parallel_schedule_thread *const p_schedule_thread = dict_get(p_schedule->p_threads, thread_name);
+        parallel_schedule_thread *const p_schedule_thread_wait = dict_get(p_schedule->p_threads, thread_name);
         
         // Find the monitor 
-        for (size_t i = 0; i < p_schedule_thread->task_quantity; i++)
+        for (size_t i = 0; i < p_schedule_thread_wait->task_quantity; i++)
         {
         
             // Check the monitor
-            if ( strcmp(p_schedule_thread->tasks[i]._name, i_task->_wait_task) == 0 ) 
+            if ( strcmp(p_schedule_thread_wait->tasks[i]._name, i_task->_wait_task) == 0 ) 
             {
 
                 // Wait
-                monitor_wait(&p_schedule_thread->tasks[i]._monitor);
+                monitor_wait(&p_schedule_thread_wait->tasks[i]._monitor);
 
                 // Done
                 goto done;
@@ -1374,7 +1374,7 @@ size_t load_file ( const char *path, void *buffer, bool binary_mode )
 
     // Find file size and prep for read
     fseek(f, 0, SEEK_END);
-    ret = ftell(f);
+    ret = (size_t) ftell(f);
     fseek(f, 0, SEEK_SET);
     
     // Read to data
