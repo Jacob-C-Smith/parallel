@@ -227,7 +227,7 @@ void parse_command_line_arguments ( int argc, const char *argv[], bool *examples
     if ( argc > PARALLEL_EXAMPLES_QUANTITY + 1 ) goto invalid_arguments;
 
     // Iterate through each command line argument
-    for (size_t i = 1; i < argc; i++)
+    for (size_t i = 1; i < (size_t) argc; i++)
     {
         
         // Thread example?
@@ -307,7 +307,7 @@ int parallel_thread_example ( int argc, const char *argv[] )
     parallel_thread *_p_parallel_threads[PARALLEL_THREADS_QUANTITY] = { 0 };
 
     // Seed the random number generator
-    srand(time(NULL));
+    srand((unsigned int) time(NULL));
 
     // Start some threads
     for (size_t i = 0; i < PARALLEL_THREADS_QUANTITY; i++)
@@ -367,8 +367,8 @@ int parallel_thread_pool_example ( int argc, const char *argv[] )
     );
 
     // Initialized data
-    thread_pool *p_thread_pool = (void *) 0;
-    timestamp   *_timestamps[7] = { 0 };
+    // thread_pool *p_thread_pool = (void *) 0;
+    // timestamp   *_timestamps[7] = { 0 };
         
     // Construct a thread pool
     //if ( thread_pool_construct(&p_thread_pool, 3) == 0 ) goto failed_to_construct_thread_pool;
@@ -386,16 +386,16 @@ int parallel_thread_pool_example ( int argc, const char *argv[] )
     // Error handling
     {
 
-        // parallel errors
-        {
-            failed_to_construct_thread_pool:
+        // // parallel errors
+        // {
+        //     failed_to_construct_thread_pool:
                 
-                // Write an error message to standard out
-                log_error("Failed to construct thread pool!\n");
+        //         // Write an error message to standard out
+        //         log_error("Failed to construct thread pool!\n");
 
-                // Error
-                return 0;
-        }
+        //         // Error
+        //         return 0;
+        // }
     }
 }
 
@@ -473,17 +473,6 @@ int parallel_schedule_example ( int argc, const char *argv[] )
                 // Error
                 return 0;
         }
-
-        // Standard library errors
-        {
-            no_mem:
-                #ifndef NDEBUG
-                    log_error("[Standard Library] Failed to allocate memory in call to function \"%s\"\n", __FUNCTION__);
-                #endif
-                
-                // Error
-                return 0;
-        }
     }
 }
 
@@ -494,10 +483,10 @@ void *print_something_to_standard_out ( void *p_parameter )
     int delay = rand() % 5;
 
     // Sleep for 0-4 seconds
-    sleep(delay);
+    sleep((unsigned int) delay);
 
     // Print the parameter to standard out
-    printf("Thread %d finished in %d seconds\n", (int) p_parameter, delay); fflush(stdout);
+    printf("Thread %zu finished in %d seconds\n", (size_t) p_parameter, delay); fflush(stdout);
 
     // Flush standard out
     fflush(stdout);
@@ -508,6 +497,9 @@ void *print_something_to_standard_out ( void *p_parameter )
 
 void *alice_joke ( void *null_pointer )
 {
+
+    // Unused
+    (void) null_pointer;
 
     // Alice's setup
     printf("Alice > Did you hear the story about the claustrophobic astronaut?\n"); fflush(stdout);
@@ -529,6 +521,9 @@ void *alice_joke ( void *null_pointer )
 void *bob_joke ( void *null_pointer )
 {
 
+    // Unused
+    (void) null_pointer;
+
     // Bob's setup
     printf("\nBob > What's red and bad for your teeth?\n"); fflush(stdout);
     
@@ -549,6 +544,9 @@ void *bob_joke ( void *null_pointer )
 void *charlie_joke ( void *null_pointer )
 {
 
+    // Unused
+    (void) null_pointer;
+
     // Charlie's setup
     printf("\nCharlie > What's the leading cause of dry skin?\n"); fflush(stdout);
 
@@ -568,6 +566,9 @@ void *charlie_joke ( void *null_pointer )
 
 void *laugh ( void *null_pointer )
 {
+
+    // Unused
+    (void) null_pointer;
 
     // Someone is laughing ...
     printf("Hahahaha\n"); fflush(stdout);

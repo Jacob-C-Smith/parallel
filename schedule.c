@@ -984,7 +984,8 @@ int parallel_schedule_start ( parallel_schedule *const p_schedule, void *const p
     {
 
         // Wait for all the threads to start        
-        while ( p_schedule->running_threads != thread_quantity );
+        while ( p_schedule->running_threads != thread_quantity )
+            sleep(0);
 
         // Start the worker threads
         monitor_notify_all(&p_schedule->_montior);

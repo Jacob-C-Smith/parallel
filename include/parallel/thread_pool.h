@@ -1,9 +1,9 @@
 /** !
- * @file parallel/threadpool.h
- * 
- * @author Jacob C Smith
- *
  * High level abstractions for thread pool 
+ * 
+ * @file parallel/threadpool.h
+ *
+ * @author Jacob Smith
  */
 
 // Include guard
@@ -14,8 +14,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
-
-#define BUILD_SYNC_WITH_MONITOR
 
 // sync submodule
 #include <sync/sync.h>

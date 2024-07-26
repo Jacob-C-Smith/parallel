@@ -187,28 +187,6 @@ int thread_pool_construct ( thread_pool **pp_thread_pool, int thread_quantity )
                 // Error
                 return 0;
         }
-
-        // queue errors
-        {
-            failed_to_construct_queue:
-                #ifndef NDEBUG
-                    log_error("[parallel] [thread pool] Failed to construct jobs queue in call to function \"%s\"\n", __FUNCTION__);
-                #endif
-                
-                // Error
-                return 0;
-        }
-
-        // Standard library errors
-        {
-            no_mem:
-                #ifndef NDEBUG
-                    log_error("[Standard Library] Failed to allocate memory in call to function \"%s\"\n", __FUNCTION__);
-                #endif
-                
-                // Error
-                return 0;
-        }
     }
 }
 
@@ -227,7 +205,7 @@ int thread_pool_run ( thread_pool *p_thread_pool, void *job )
     if ( queue_empty(p_thread_pool->jobs) ) goto no_work;
 
     // Dequeue a job
-    queue_dequeue(p_thread_pool, &p_job);
+    queue_dequeue(p_thread_pool, (const void **const)&p_job);
 
     // Start a thread to work on the job
     parallel_thread_start(
@@ -300,7 +278,7 @@ int thread_pool_destroy ( thread_pool **pp_thread_pool )
     // 
 
     // Free the thread pool struct
-    PARALLEL_REALLOC(p_thread_pool, 0);
+    p_thread_pool = PARALLEL_REALLOC(p_thread_pool, 0);
 
     // Success
     return 1;

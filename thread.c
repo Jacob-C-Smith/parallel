@@ -168,14 +168,6 @@ int parallel_thread_cancel ( parallel_thread *p_parallel_thread )
 
                 // Error
                 return 0;
-            
-            no_function_pointer:
-                #ifndef NDEBUG
-                    log_error("[parallel] [thread] Null pointer provided for parameter \"pfn_function_pointer\" in call to function \"%s\"\n", __FUNCTION__);
-                #endif
-
-                // Error
-                return 0;
         }
 
         // pthread errors
@@ -200,8 +192,11 @@ int parallel_thread_join ( parallel_thread **pp_parallel_thread )
     // Initialized data
     parallel_thread *p_parallel_thread = *pp_parallel_thread;
 
+    // No more pointer for caller
+    *pp_parallel_thread = (void *) 0;
+
     // Destory the parallel thread
-    parallel_thread_destory(pp_parallel_thread);
+    parallel_thread_destory(&p_parallel_thread);
 
     // Success
     return 1;
@@ -218,28 +213,8 @@ int parallel_thread_join ( parallel_thread **pp_parallel_thread )
 
                 // Error
                 return 0;
-            
-            no_function_pointer:
-                #ifndef NDEBUG
-                    log_error("[parallel] [thread] Null pointer provided for parameter \"pfn_function_pointer\" in call to function \"%s\"\n", __FUNCTION__);
-                #endif
-
-                // Error
-                return 0;
-        }
-
-        // pthread errors
-        {
-            failed_to_join_pthread:
-                #ifndef NDEBUG
-                    log_error("[parallel] [thread] Call to \"pthread_join\" returned an erroneous value in call to function \"%s\"\n", __FUNCTION__);
-                #endif
-
-                // Error
-                return 0;
         }
     }
-
 }
 
 int parallel_thread_destory ( parallel_thread **pp_parallel_thread )
