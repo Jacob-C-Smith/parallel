@@ -429,7 +429,7 @@ int parallel_schedule_load_as_json_value ( parallel_schedule **const pp_schedule
         dict_keys(p_dict, _keys);
 
         // Store the values of the threads
-        dict_values(p_dict, _p_values);
+        dict_values(p_dict, (void **)_p_values);
 
         // Construct a dictionary for the threads
         (void) dict_construct(&_schedule.p_threads, threads_quantity * 2, 0);
@@ -476,7 +476,7 @@ int parallel_schedule_load_as_json_value ( parallel_schedule **const pp_schedule
         parallel_schedule_task   *p_task = (void *) 0;
         
         // Store the threads from the schedule
-        dict_values(_schedule.p_threads, _p_threads);
+        dict_values(_schedule.p_threads, (void **)_p_threads);
 
         // Iterate over each thread
         for (size_t i = 0; i < thread_quantity; i++)
@@ -731,7 +731,7 @@ int parallel_schedule_thread_load_as_json_value ( parallel_schedule_thread **con
         const json_value *p_ith_value = (void *) 0;
         
         // Store the ith json value
-        (void) array_index(p_array, i, &p_ith_value);
+        (void) array_index(p_array, i, (void **)&p_ith_value);
 
         // Error check
         if ( p_ith_value->type == JSON_VALUE_OBJECT ) 
@@ -933,7 +933,7 @@ int parallel_schedule_start ( parallel_schedule *const p_schedule, void *const p
     p_schedule->p_parameter = p_parameter;
 
     // Store the threads from the schedule
-    dict_values(p_schedule->p_threads, _p_threads);
+    dict_values(p_schedule->p_threads, (void **)_p_threads);
 
     // Iterate over each thread
     for (size_t i = 0; i < thread_quantity; i++)
@@ -1055,7 +1055,7 @@ int parallel_schedule_stop ( parallel_schedule *const p_schedule )
     p_schedule->repeat = false;
 
     // Store the threads from the schedule
-    dict_values(p_schedule->p_threads, _p_threads);
+    dict_values(p_schedule->p_threads, (void **)_p_threads);
 
     // Iterate over each thread
     for (size_t i = 0; i < thread_quantity; i++)
