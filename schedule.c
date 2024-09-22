@@ -10,9 +10,9 @@
 #include <parallel/schedule.h>
 
 // Preprocessor definitions
-#define PARALLEL_SCHEDULE_NAME_LENGTH        63+1
-#define PARALLEL_SCHEDULE_THREAD_NAME_LENGTH 63+1
-#define PARALLEL_SCHEDULE_TASK_NAME_LENGTH   63+1
+#define PARALLEL_SCHEDULE_NAME_LENGTH        (63 + 1)
+#define PARALLEL_SCHEDULE_THREAD_NAME_LENGTH (63 + 1)
+#define PARALLEL_SCHEDULE_TASK_NAME_LENGTH   (63 + 1)
 #define PARALLEL_SCHEDULE_MAX_THREADS        64
 #define PARALLEL_SCHEDULE_MAX_TASKS          256
 
@@ -37,7 +37,6 @@ struct parallel_schedule_task_s
          _wait_thread [PARALLEL_SCHEDULE_THREAD_NAME_LENGTH],
          _wait_task [PARALLEL_SCHEDULE_TASK_NAME_LENGTH];
 };
-
 
 struct parallel_schedule_thread_s
 {
