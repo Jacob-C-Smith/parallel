@@ -25,42 +25,53 @@
 #include <parallel/parallel.h>
 #include <parallel/thread.h>
 
-// Preprocessor definitions
-#define PARALLEL_THREAD_POOL_MAX_THREADS 64
 
-// structure definitions
-struct thread_pool_s
-{
-    int thread_quantity,
-        running_jobs,
-        pending_jobs,
-        complete_jobs;
-    bool running;
-    queue *jobs;
-    monitor _monitor;
-    mutex _lock;
-    parallel_thread *p_main, 
-                    *_p_threads[PARALLEL_THREAD_POOL_MAX_THREADS];
-};
+// Forward declarations
+struct parallel_thread_pool_s;
 
+// Type definitions
+typedef struct parallel_thread_pool_s parallel_thread_pool;
+
+// Function declarations
+// Allocators
 /** !
  * Allocate memory for a thread pool
  * 
- * @param pp_thread_pool return
+ * @param pp_thread_pool result
  * 
  * @return 1 on success, 0 on error
  */
-DLLEXPORT int thread_pool_create ( thread_pool **pp_thread_pool );
+DLLEXPORT int thread_pool_create ( parallel_thread_pool **pp_thread_pool );
 
-DLLEXPORT int thread_pool_construct ( thread_pool **pp_thread_pool, int thread_quantity );
+/** !
+ * Construct a thread pool
+ * 
+ * @param pp_thread_pool  result
+ * @param thread_quantity the quantity of threads
+ * 
+ * @return 1 on success, 0 on error
+ */
+DLLEXPORT int thread_pool_construct ( parallel_thread_pool **pp_thread_pool, int thread_quantity );
 
-DLLEXPORT int thread_pool_run ( thread_pool *p_thread_pool, void *job );
+/** !
+ * Run a job on a thread pool
+ * 
+ * @param p_thread_pool     the thread pool
+ * @param pfn_parallel_task pointer to job function
+ * @param p_parameter       the parameter of the parallel task
+ * 
+ * @return 1 on success, 0 on error
+ */
+DLLEXPORT int thread_pool_run ( parallel_thread_pool *p_thread_pool, fn_parallel_task *pfn_parallel_task, void *p_parameter );
 
-DLLEXPORT int thread_pool_pending_jobs ( thread_pool *p_thread_pool, int *p_result );
-
-DLLEXPORT int thread_pool_complete_jobs ( thread_pool *p_thread_pool, void *p_result );
-
-DLLEXPORT bool thread_pool_is_idle ( thread_pool *p_thread_pool );
+/** !
+ * Test if the thread pool is idle
+ * 
+ * @param p_thread_pool the thread pool
+ * 
+ * @return 1 on success, 0 on error
+ */
+DLLEXPORT bool thread_pool_is_idle ( parallel_thread_pool *p_thread_pool );
 
 /** !
  * Destroy a thread pool
@@ -69,4 +80,4 @@ DLLEXPORT bool thread_pool_is_idle ( thread_pool *p_thread_pool );
  * 
  * @return 1 on success, 0 on error
 */
-DLLEXPORT int thread_pool_destroy ( thread_pool **pp_thread_pool );
+DLLEXPORT int thread_pool_destroy ( parallel_thread_pool **pp_thread_pool );
