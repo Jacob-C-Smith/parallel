@@ -32,10 +32,10 @@
 #include <parallel/thread.h>
 
 // Forward declarations
-struct parallel_schedule_s;
+struct schedule_s;
 
 // Type definitions
-typedef struct parallel_schedule_s parallel_schedule;
+typedef struct schedule_s schedule;
 
 // Function declarations
 // Allocators
@@ -46,7 +46,7 @@ typedef struct parallel_schedule_s parallel_schedule;
  * 
  * @return 1 on success, 0 on error
 */
-DLLEXPORT int parallel_schedule_create ( parallel_schedule **const pp_schedule );
+DLLEXPORT int schedule_create ( schedule **const pp_schedule );
 
 // Constructors
 /** !
@@ -57,7 +57,7 @@ DLLEXPORT int parallel_schedule_create ( parallel_schedule **const pp_schedule )
  * 
  * @return 1 on success, 0 on error 
 */
-DLLEXPORT int parallel_schedule_load ( parallel_schedule **const pp_schedule, const char *const path );
+DLLEXPORT int schedule_load ( schedule **const pp_schedule, const char *const path );
 
 /** !
  * Construct a schedule from a json value 
@@ -67,7 +67,7 @@ DLLEXPORT int parallel_schedule_load ( parallel_schedule **const pp_schedule, co
  * 
  * @return 1 on success, 0 on error 
 */
-int parallel_schedule_load_as_json_value ( parallel_schedule **const pp_schedule, const json_value *const p_value );
+int schedule_load_as_json_value ( schedule **const pp_schedule, const json_value *const p_value );
 
 // Start
 /** !
@@ -79,7 +79,7 @@ int parallel_schedule_load_as_json_value ( parallel_schedule **const pp_schedule
  *
  * @return 1 on success, 0 on error
  */
-DLLEXPORT int parallel_schedule_start ( parallel_schedule *const p_schedule, void *const p_parameter );
+DLLEXPORT int schedule_start ( schedule *const p_schedule, void *const p_parameter );
 
 // Wait idle
 /** !
@@ -89,7 +89,7 @@ DLLEXPORT int parallel_schedule_start ( parallel_schedule *const p_schedule, voi
  * 
  * @return 1 on success, 0 on error
  */
-DLLEXPORT int parallel_schedule_wait_idle ( parallel_schedule *const p_schedule );
+DLLEXPORT int schedule_wait_idle ( schedule *const p_schedule );
 
 /** !
  * Clear a schedule's repeat flag
@@ -98,7 +98,7 @@ DLLEXPORT int parallel_schedule_wait_idle ( parallel_schedule *const p_schedule 
  * 
  * @return 1 on success, 0 on error
  */
-DLLEXPORT int parallel_schedule_pause ( parallel_schedule *const p_schedule );
+DLLEXPORT int schedule_pause ( schedule *const p_schedule );
 
 // Stop
 /** !
@@ -110,7 +110,7 @@ DLLEXPORT int parallel_schedule_pause ( parallel_schedule *const p_schedule );
  *
  * @return 1 on success, 0 on error
  */
-DLLEXPORT int parallel_schedule_stop ( parallel_schedule *const p_schedule );
+DLLEXPORT int schedule_stop ( schedule *const p_schedule );
 
 // Destructors
 /** !
@@ -120,5 +120,5 @@ DLLEXPORT int parallel_schedule_stop ( parallel_schedule *const p_schedule );
  * 
  * @return 1 on success, 0 on error
  */
-DLLEXPORT int parallel_schedule_destroy ( parallel_schedule **const pp_schedule );
+DLLEXPORT int schedule_destroy ( schedule **const pp_schedule );
 

@@ -49,11 +49,11 @@ struct parallel_schedule_thread_s
 
 struct parallel_schedule_work_parameter_s
 {
-    parallel_schedule *p_schedule;
+    schedule *p_schedule;
     parallel_schedule_thread *p_thread;
 };
 
-struct parallel_schedule_s
+struct schedule_s
 {
     monitor _montior;
     mutex _lock;
@@ -72,7 +72,7 @@ struct parallel_schedule_s
  * 
  * @param pp_schedule_thread return
  * 
- * @sa parallel_schedule_destroy
+ * @sa schedule_destroy
  * 
  * @return 1 on success, 0 on error
 */
@@ -87,7 +87,7 @@ int parallel_schedule_thread_create ( parallel_schedule_thread **pp_schedule_thr
  * 
  * @return 1 on success, 0 on error
  */
-int parallel_schedule_load_as_json_value ( parallel_schedule **const pp_schedule, const json_value *const p_value );
+int schedule_load_as_json_value ( schedule **const pp_schedule, const json_value *const p_value );
 
 /** !
  * Construct a named thread from a json value
@@ -133,23 +133,23 @@ int parallel_schedule_thread_destroy ( parallel_schedule_thread **pp_thread );
 size_t load_file ( const char *path, void *buffer, bool binary_mode );
 
 // Function definitions
-int parallel_schedule_create ( parallel_schedule **const pp_schedule )
+int schedule_create ( schedule **const pp_schedule )
 {
 
     // Argument check
     if ( pp_schedule == (void *) 0 ) goto no_schedule;
 
     // Initialized data
-    parallel_schedule *p_schedule = (void *) 0;
+    schedule *p_schedule = (void *) 0;
 
     // Allocate memory for the schedule
-    p_schedule = PARALLEL_REALLOC(0, sizeof(parallel_schedule));
+    p_schedule = PARALLEL_REALLOC(0, sizeof(schedule));
 
     // Error check
     if ( p_schedule == (void *) 0 ) goto no_mem;
 
     // Zero set memory
-    memset(p_schedule, 0, sizeof(parallel_schedule));
+    memset(p_schedule, 0, sizeof(schedule));
 
     // Return a pointer to the caller
     *pp_schedule = p_schedule;
@@ -238,7 +238,7 @@ int parallel_schedule_thread_create ( parallel_schedule_thread **const pp_schedu
     }
 }
 
-int parallel_schedule_load ( parallel_schedule **pp_schedule, const char *const path )
+int schedule_load ( schedule **pp_schedule, const char *const path )
 {
 
     // Argument check
@@ -269,7 +269,7 @@ int parallel_schedule_load ( parallel_schedule **pp_schedule, const char *const 
     if ( json_value_parse(p_file_contents, 0, &p_value) == 0 ) goto failed_to_parse_json_value;
 
     // Construct a schedule
-    if ( parallel_schedule_load_as_json_value(pp_schedule, p_value) == 0 ) goto failed_to_construct_schedule;
+    if ( schedule_load_as_json_value(pp_schedule, p_value) == 0 ) goto failed_to_construct_schedule;
 
     // Clean up
     PARALLEL_REALLOC(p_file_contents, 0);
@@ -345,7 +345,7 @@ int parallel_schedule_load ( parallel_schedule **pp_schedule, const char *const 
     }
 }
 
-int parallel_schedule_load_as_json_value ( parallel_schedule **const pp_schedule, const json_value *const p_value )
+int schedule_load_as_json_value ( schedule **const pp_schedule, const json_value *const p_value )
 {
 
     // Argument check
@@ -359,7 +359,7 @@ int parallel_schedule_load_as_json_value ( parallel_schedule **const pp_schedule
                      *const p_threads     = dict_get(p_dict, "threads"),
                      *const p_main_thread = dict_get(p_dict, "main thread"),
                      *const p_repeat      = dict_get(p_dict, "repeat");
-    parallel_schedule  _schedule  = { 0 }, 
+    schedule  _schedule  = { 0 }, 
                       *p_schedule = (void *) 0;
 
     // Check for missing properties
@@ -540,10 +540,10 @@ int parallel_schedule_load_as_json_value ( parallel_schedule **const pp_schedule
     }
 
     // Allocate memory for a schedule
-    if ( parallel_schedule_create(&p_schedule) == 0 ) goto failed_to_create_schedule;
+    if ( schedule_create(&p_schedule) == 0 ) goto failed_to_create_schedule;
 
     // Copy the schedule from the stack to the heap
-    memcpy(p_schedule, &_schedule, sizeof(parallel_schedule));
+    memcpy(p_schedule, &_schedule, sizeof(schedule));
 
     // Construct a monitor for the schedule
     monitor_create(&p_schedule->_montior);
@@ -915,7 +915,7 @@ int parallel_schedule_thread_load_as_json_value ( parallel_schedule_thread **con
     }   
 }
 
-int parallel_schedule_start ( parallel_schedule *const p_schedule, void *const p_parameter )
+int schedule_start ( schedule *const p_schedule, void *const p_parameter )
 {
 
     // Argument check
@@ -1020,7 +1020,7 @@ int parallel_schedule_start ( parallel_schedule *const p_schedule, void *const p
     }
 }
 
-int parallel_schedule_wait_idle ( parallel_schedule *const p_schedule )
+int schedule_wait_idle ( schedule *const p_schedule )
 {
     
     // Spin until all threads are done
@@ -1030,7 +1030,7 @@ int parallel_schedule_wait_idle ( parallel_schedule *const p_schedule )
     return 1;
 }
 
-int parallel_schedule_pause ( parallel_schedule *const p_schedule )
+int schedule_pause ( schedule *const p_schedule )
 {
 
     // Clear the repeat flag
@@ -1040,7 +1040,7 @@ int parallel_schedule_pause ( parallel_schedule *const p_schedule )
     return 1;
 } 
 
-int parallel_schedule_stop ( parallel_schedule *const p_schedule )
+int schedule_stop ( schedule *const p_schedule )
 {
 
     // Argument check
@@ -1106,7 +1106,7 @@ int parallel_schedule_stop ( parallel_schedule *const p_schedule )
     }
 }
 
-int parallel_schedule_destroy ( parallel_schedule **const pp_schedule )
+int schedule_destroy ( schedule **const pp_schedule )
 {
 
     // TODO
@@ -1123,7 +1123,7 @@ void *parallel_schedule_work ( parallel_schedule_work_parameter *p_parameter )
     if ( p_parameter == (void *) 0 ) goto no_work_parameter;
 
     // Initialized data
-    parallel_schedule        *p_schedule        = p_parameter->p_schedule;
+    schedule        *p_schedule        = p_parameter->p_schedule;
     parallel_schedule_thread *p_schedule_thread = p_parameter->p_thread;
     parallel_schedule_task   *i_task            = (void *) 0;
     
@@ -1243,7 +1243,7 @@ void *parallel_schedule_main_work ( parallel_schedule_work_parameter *p_paramete
     if ( p_parameter == (void *) 0 ) goto no_work_parameter;
 
     // Initialized data
-    parallel_schedule        *p_schedule        = p_parameter->p_schedule;
+    schedule        *p_schedule        = p_parameter->p_schedule;
     parallel_schedule_thread *p_schedule_thread = p_parameter->p_thread;
     parallel_schedule_task   *i_task            = (void *) 0;
     

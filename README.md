@@ -114,17 +114,17 @@ int parallel_thread_destory ( parallel_thread **pp_parallel_thread );
 ### Schedule function definitions
  ```c
 // Allocators
-int parallel_schedule_create ( parallel_schedule **const pp_schedule );
+int schedule_create ( schedule **const pp_schedule );
 
 // Constructors
-int parallel_schedule_load ( parallel_schedule **const pp_schedule, const char *const path );
+int schedule_load ( schedule **const pp_schedule, const char *const path );
 
 // Start
-int parallel_schedule_start ( parallel_schedule *const p_schedule );
+int schedule_start ( schedule *const p_schedule );
 
 // Stop
-int parallel_schedule_stop ( parallel_schedule *const p_schedule );
+int schedule_stop ( schedule *const p_schedule );
 
 // Destructors
-int parallel_schedule_destroy ( parallel_schedule **const pp_schedule );
+int schedule_destroy ( schedule **const pp_schedule );
  ```

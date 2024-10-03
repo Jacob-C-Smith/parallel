@@ -306,7 +306,7 @@ int parallel_thread_example ( int argc, const char *argv[] )
     for (size_t i = 0; i < PARALLEL_THREADS_QUANTITY; i++)
 
         // Start a thread
-        if ( parallel_thread_start(&_p_parallel_threads[i], print_something_to_standard_out, (void *) i) == 0 ) goto failed_to_start_thread;
+        if ( parallel_thread_start(&_p_parallel_threads[i], print_something_to_standard_out, (void *) i + 1) == 0 ) goto failed_to_start_thread;
 
     // Wait for the threads to finish
     for (size_t i = 0; i < PARALLEL_THREADS_QUANTITY; i++)
@@ -407,7 +407,7 @@ int parallel_schedule_example ( int argc, const char *argv[] )
     log_info("the most important features of the scheduler. Concurrency, and parallelism. \n\n");
 
     // Initialized data
-    parallel_schedule *p_schedule = (void *) 0;
+    schedule *p_schedule = (void *) 0;
     
     // Register tasks for the scheduler
     (void) parallel_register_task("Alice tells a joke"  , (fn_parallel_task *)alice_joke);
@@ -416,19 +416,19 @@ int parallel_schedule_example ( int argc, const char *argv[] )
     (void) parallel_register_task("laugh"               , (fn_parallel_task *)laugh);
 
     // Construct a schedule
-    if ( parallel_schedule_load(&p_schedule, "resources/schedule.json") == 0 ) goto failed_to_construct_schedule;
+    if ( schedule_load(&p_schedule, "resources/schedule.json") == 0 ) goto failed_to_construct_schedule;
 
     // Start the schedule
-    if ( parallel_schedule_start(p_schedule, 0) == 0 ) goto failed_to_start_schedule;
+    if ( schedule_start(p_schedule, 0) == 0 ) goto failed_to_start_schedule;
 
     // Wait for the schedule to stop
-    parallel_schedule_wait_idle(p_schedule);
+    (void) schedule_wait_idle(p_schedule);
 
     // Stop the schedule
-    if ( parallel_schedule_stop(p_schedule) == 0 ) goto failed_to_stop_schedule;
+    if ( schedule_stop(p_schedule) == 0 ) goto failed_to_stop_schedule;
 
     // Destroy the scheudle
-    (void) parallel_schedule_destroy(&p_schedule);
+    (void) schedule_destroy(&p_schedule);
     
     // Success
     return 1;
@@ -475,7 +475,7 @@ void *print_something_to_standard_out ( void *p_parameter )
     sleep((unsigned int) delay);
 
     // Print the parameter to standard out
-    printf("Thread %zu finished in %d seconds\n", (size_t) p_parameter, delay); fflush(stdout);
+    printf("Task %zu finished in %d seconds\n", (size_t) p_parameter, delay); fflush(stdout);
 
     // Flush standard out
     fflush(stdout);
@@ -551,6 +551,19 @@ void *charlie_joke ( void *null_pointer )
 
     // Success
     return (void *) 1;
+}
+
+void *task_1 ( void *null_pointer )
+{
+
+    // Unused
+    (void) null_pointer;
+
+    // Task 1
+    sleep(2); printf("\nTask 1\n"); fflush(stdout);
+
+    // Success
+    return (void *) 1;    
 }
 
 void *laugh ( void *null_pointer )
