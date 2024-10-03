@@ -25,24 +25,15 @@
 #include <parallel/parallel.h>
 #include <parallel/thread.h>
 
-
 // Forward declarations
-struct parallel_thread_pool_s;
+struct thread_pool_s;
 
 // Type definitions
-typedef struct parallel_thread_pool_s parallel_thread_pool;
+typedef struct thread_pool_s thread_pool;
 
 // Function declarations
-// Allocators
-/** !
- * Allocate memory for a thread pool
- * 
- * @param pp_thread_pool result
- * 
- * @return 1 on success, 0 on error
- */
-DLLEXPORT int thread_pool_create ( parallel_thread_pool **pp_thread_pool );
 
+// Constructors
 /** !
  * Construct a thread pool
  * 
@@ -51,10 +42,10 @@ DLLEXPORT int thread_pool_create ( parallel_thread_pool **pp_thread_pool );
  * 
  * @return 1 on success, 0 on error
  */
-DLLEXPORT int thread_pool_construct ( parallel_thread_pool **pp_thread_pool, int thread_quantity );
+DLLEXPORT int thread_pool_construct ( thread_pool **pp_thread_pool, int thread_quantity );
 
 /** !
- * Run a job on a thread pool
+ * Execute a job on a thread pool
  * 
  * @param p_thread_pool     the thread pool
  * @param pfn_parallel_task pointer to job function
@@ -62,7 +53,7 @@ DLLEXPORT int thread_pool_construct ( parallel_thread_pool **pp_thread_pool, int
  * 
  * @return 1 on success, 0 on error
  */
-DLLEXPORT int thread_pool_run ( parallel_thread_pool *p_thread_pool, fn_parallel_task *pfn_parallel_task, void *p_parameter );
+DLLEXPORT int thread_pool_execute ( thread_pool *p_thread_pool, fn_parallel_task *pfn_parallel_task, void *p_parameter );
 
 /** !
  * Test if the thread pool is idle
@@ -71,7 +62,7 @@ DLLEXPORT int thread_pool_run ( parallel_thread_pool *p_thread_pool, fn_parallel
  * 
  * @return 1 on success, 0 on error
  */
-DLLEXPORT bool thread_pool_is_idle ( parallel_thread_pool *p_thread_pool );
+DLLEXPORT bool thread_pool_is_idle ( thread_pool *p_thread_pool );
 
 /** !
  * Destroy a thread pool
@@ -80,4 +71,4 @@ DLLEXPORT bool thread_pool_is_idle ( parallel_thread_pool *p_thread_pool );
  * 
  * @return 1 on success, 0 on error
 */
-DLLEXPORT int thread_pool_destroy ( parallel_thread_pool **pp_thread_pool );
+DLLEXPORT int thread_pool_destroy ( thread_pool **pp_thread_pool );
