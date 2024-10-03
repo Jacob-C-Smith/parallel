@@ -355,21 +355,28 @@ int parallel_thread_pool_example ( int argc, const char *argv[] )
     log_info("╭─────────────────────╮\n");
     log_info("│ thread pool example │\n");
     log_info("╰─────────────────────╯\n");
-    log_info("This example [TODO: Describe example]\n\n");
+    log_info("This example creates a thread pool with 3 threads. Each thread runs the\n");
+    log_info("same function from the previous example. The function is run 15 times.\n");
+    log_info("The thread pool keeps processor utilization high, in spite of the bottleneck.\n\n");
 
     // Initialized data
-    // thread_pool *p_thread_pool = (void *) 0;
-    // timestamp   *_timestamps[7] = { 0 };
-        
-    // Construct a thread pool
-    //if ( thread_pool_construct(&p_thread_pool, 3) == 0 ) goto failed_to_construct_thread_pool;
+    thread_pool *p_thread_pool = (void *) 0;
 
-    // Enqueue some tasks
-    //for (size_t i = 1; i < 3; i++)
-    //    thread_pool_run(p_thread_pool, print_something_to_standard_out);
+    // Construct a thread pool
+    if ( thread_pool_construct(&p_thread_pool, 3) == 0 ) goto failed_to_construct_thread_pool;
+
+    // Add 15 tasks ...
+    for (size_t i = 0; i < 15; i++)
+
+        // ... to the thread pool
+        thread_pool_execute(p_thread_pool, print_something_to_standard_out, i + 1);
 
     // Wait for everything to finish
-    //thread_pool_wait_idle(p_thread_pool);
+    //parallel_thread_pool_wait_idle(p_thread_pool);
+
+    sleep(5);
+
+    putchar('\n');
     
     // Success
     return 1;
@@ -377,16 +384,24 @@ int parallel_thread_pool_example ( int argc, const char *argv[] )
     // Error handling
     {
 
-        // // parallel errors
-        // {
-        //     failed_to_construct_thread_pool:
+        // parallel errors
+        {
+            failed_to_construct_thread_pool:
                 
-        //         // Write an error message to standard out
-        //         log_error("Failed to construct thread pool!\n");
+                // Write an error message to standard out
+                log_error("Failed to construct thread pool!\n");
 
-        //         // Error
-        //         return 0;
-        // }
+                // Error
+                return 0;
+
+            failed_to_start_thread_pool:
+
+                // Write an error message to standard out
+                log_error("Failed to start thread pool!\n");
+
+                // Error
+                return 0;
+        }
     }
 }
 
