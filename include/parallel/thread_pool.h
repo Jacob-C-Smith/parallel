@@ -65,6 +65,15 @@ DLLEXPORT int thread_pool_execute ( thread_pool *p_thread_pool, fn_parallel_task
 DLLEXPORT bool thread_pool_is_idle ( thread_pool *p_thread_pool );
 
 /** !
+ * Block until a thread pool finishes it's active jobs
+ * 
+ * @param p_thread_pool the thread pool
+ * 
+ * @return 1 on success, 0 on error
+ */
+DLLEXPORT int thread_pool_wait_idle ( thread_pool *p_thread_pool );
+
+/** !
  * Destroy a thread pool
  * 
  * @param pp_thread_pool pointer to thread pool pointer

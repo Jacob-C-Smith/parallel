@@ -371,11 +371,16 @@ int parallel_thread_pool_example ( int argc, const char *argv[] )
         // ... to the thread pool
         thread_pool_execute(p_thread_pool, print_something_to_standard_out, i + 1);
 
+    // Log the idle start
+    log_info("Started thread pool wait\n");
+
     // Wait for everything to finish
-    //parallel_thread_pool_wait_idle(p_thread_pool);
+    thread_pool_wait_idle(p_thread_pool);
 
-    sleep(5);
+    // Log the idle finish
+    log_info("Thread pool is idle\n");
 
+    // Formatting
     putchar('\n');
     
     // Success

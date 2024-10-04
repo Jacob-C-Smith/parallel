@@ -323,14 +323,14 @@ int thread_pool_execute ( thread_pool *p_thread_pool, fn_parallel_task *pfn_para
     p_thread_pool->_threads[i]._thread.p_parameter       = p_parameter;
     p_thread_pool->_threads[i]._thread.running           = true;
 
-    // Unlock
-    mutex_unlock(&p_thread_pool->_lock);
-
     sleep(0);
 
     // Signal the thread
     monitor_notify(&p_thread_pool->_threads[i]._thread._montior);
 
+    // Unlock
+    mutex_unlock(&p_thread_pool->_lock);
+    
     // Success
     return 1;
 
@@ -369,6 +369,50 @@ int thread_pool_execute ( thread_pool *p_thread_pool, fn_parallel_task *pfn_para
     }
 }
 
+int thread_pool_wait_idle ( thread_pool *p_thread_pool )
+{
+
+    // Argument check
+    if ( p_thread_pool == (void *) 0 ) goto no_thread_pool;
+
+    // Initialized data
+    bool is_running = true;
+
+    // Until the thread pool is idle
+    while ( is_running )
+    {
+
+        is_running = false;
+
+        // For all threads in the thread pool ...
+        for (size_t i = 0; i < p_thread_pool->thread_quantity; i++)
+        
+            // ... if a thread is running set the flag ...
+            is_running |= p_thread_pool->_threads[i]._thread.running;
+        
+        // ... defer to other threads 
+        sleep(0);
+    };
+
+    // Success
+    return 1;
+
+    // Error handling
+    {
+
+        // Argument errors
+        {
+            no_thread_pool:
+                #ifndef NDEBUG
+                    log_error("[parallel] [thread pool] Null pointer provided for parameter \"p_thread_pool\" in call to function \"%s\"\n", __FUNCTION__);
+                #endif
+
+                // Error
+                return 0;
+        }
+    }
+}
+
 void *thread_pool_work ( thread_pool_work_parameter *p_parameter )
 {
 
@@ -393,8 +437,12 @@ void *thread_pool_work ( thread_pool_work_parameter *p_parameter )
 
     wait_for_next_task:
 
+    p_parameter->_thread.running = false;
+
     // Wait for a task to be assigned
     monitor_wait(&p_parameter->_thread._montior);
+
+    p_parameter->_thread.running = true;
 
     // Run the user's task
     p_parameter->_thread.ret = p_parameter->_thread.pfn_parallel_task(p_parameter->_thread.p_parameter);
