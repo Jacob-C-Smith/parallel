@@ -22,6 +22,7 @@
 // Preprocessor defines
 #define PARALLEL_THREADS_QUANTITY  4
 #define PARALLEL_THREADS_MAX_DELAY 4
+#define PARALLEL_THREAD_POOL_TASKS 16
 
 // Enumeration definitions
 enum parallel_examples_e
@@ -355,21 +356,21 @@ int parallel_thread_pool_example ( int argc, const char *argv[] )
     log_info("╭─────────────────────╮\n");
     log_info("│ thread pool example │\n");
     log_info("╰─────────────────────╯\n");
-    log_info("This example creates a thread pool with 3 threads. Each thread runs the\n");
-    log_info("same function from the previous example. The function is run 15 times.\n");
+    log_info("This example creates a thread pool with %d threads. Each thread runs the\n", PARALLEL_THREADS_QUANTITY);
+    log_info("same function from the previous example. The function is run %d times.\n", PARALLEL_THREAD_POOL_TASKS);
     log_info("The thread pool keeps processor utilization high, in spite of the bottleneck.\n\n");
 
     // Initialized data
     thread_pool *p_thread_pool = (void *) 0;
 
     // Construct a thread pool
-    if ( thread_pool_construct(&p_thread_pool, 3) == 0 ) goto failed_to_construct_thread_pool;
+    if ( thread_pool_construct(&p_thread_pool, PARALLEL_THREADS_QUANTITY) == 0 ) goto failed_to_construct_thread_pool;
 
     // Add 15 tasks ...
-    for (size_t i = 0; i < 15; i++)
+    for (size_t i = 1; i <= 16; i++)
 
         // ... to the thread pool
-        thread_pool_execute(p_thread_pool, print_something_to_standard_out, i + 1);
+        thread_pool_execute(p_thread_pool, print_something_to_standard_out, i);
 
     // Log the idle start
     log_info("Started thread pool wait\n");
@@ -489,16 +490,18 @@ void *print_something_to_standard_out ( void *p_parameter )
 {
 
     // Initialized data
-    int delay = rand() % 5;
+    static int z = 0;
+    int delay = (rand() % 5);
 
     // Sleep for 0-4 seconds
     sleep((unsigned int) delay);
 
     // Print the parameter to standard out
-    printf("Task %zu finished in %d seconds\n", (size_t) p_parameter, delay); fflush(stdout);
+    printf("Task %zu finished in %d seconds\n", (size_t) p_parameter, delay);
 
     // Flush standard out
     fflush(stdout);
+    z++;
 
     // Done
     return 0;
