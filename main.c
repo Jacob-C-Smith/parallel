@@ -370,7 +370,7 @@ int parallel_thread_pool_example ( int argc, const char *argv[] )
     for (size_t i = 1; i <= 16; i++)
 
         // ... to the thread pool
-        thread_pool_execute(p_thread_pool, print_something_to_standard_out, i);
+        thread_pool_execute(p_thread_pool, print_something_to_standard_out, (void *)i);
 
     // Log the idle start
     log_info("Started thread pool wait\n");

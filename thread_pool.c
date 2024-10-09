@@ -200,7 +200,7 @@ int thread_pool_construct ( thread_pool **pp_thread_pool, int thread_quantity )
         monitor_create(&p_thread_pool->_threads[i]._thread._montior);
 
         // Construct a thread
-        if ( parallel_thread_start(&p_thread_pool->_threads[i]._thread.p_parallel_thread, thread_pool_work, &p_thread_pool->_threads[i]) == 0 ) goto failed_to_start_thread;
+        if ( parallel_thread_start(&p_thread_pool->_threads[i]._thread.p_parallel_thread, (fn_parallel_task *)thread_pool_work, &p_thread_pool->_threads[i]) == 0 ) goto failed_to_start_thread;
     }
 
     // Wait for all the threads to start
