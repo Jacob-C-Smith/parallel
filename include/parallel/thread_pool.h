@@ -18,9 +18,6 @@
 // sync submodule
 #include <sync/sync.h>
 
-// queue submodule
-#include <queue/queue.h>
-
 // parallel
 #include <parallel/parallel.h>
 #include <parallel/thread.h>

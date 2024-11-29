@@ -44,19 +44,6 @@ if ( NOT "${HAS_SYNC}")
     endif()
 endif()
 
-# Find the queue module
-if ( NOT "${HAS_QUEUE}")
-    
-    # Add the queue directory
-    add_subdirectory(${CMAKE_SOURCE_DIR}/extern/queue ${CMAKE_SOURCE_DIR}/build/queue)
-
-    # Let any parent project know that this project has queue
-    if(NOT PROJECT_IS_TOP_LEVEL)
-        set(HAS_QUEUE true PARENT_SCOPE)
-        set(QUEUE_INCLUDE_DIR ${QUEUE_INCLUDE_DIR} PARENT_SCOPE)
-    endif()
-endif()
-
 # Find the array module
 if ( NOT "${HAS_JSON}")
     
@@ -118,8 +105,8 @@ endif ()
 # Add source to this project's executable.
 add_executable (parallel_example "main.c")
 add_dependencies(parallel_example log json array dict sync)
-target_include_directories(parallel_example PUBLIC ${PARALLEL_INCLUDE_DIR} ${QUEUE_INCLUDE_DIR} ${ARRAY_INCLUDE_DIR} ${DICT_INCLUDE_DIR} ${SYNC_INCLUDE_DIR} ${LOG_INCLUDE_DIR} ${HASH_CACHE_INCLUDE_DIR})
-target_link_libraries(parallel_example queue log parallel json array dict sync)
+target_include_directories(parallel_example PUBLIC ${PARALLEL_INCLUDE_DIR} ${ARRAY_INCLUDE_DIR} ${DICT_INCLUDE_DIR} ${SYNC_INCLUDE_DIR} ${LOG_INCLUDE_DIR} ${HASH_CACHE_INCLUDE_DIR})
+target_link_libraries(parallel_example log parallel json array dict sync)
 
 
 #add_executable (tmp "tmp.c")
@@ -136,5 +123,5 @@ target_link_libraries(parallel_example queue log parallel json array dict sync)
 # Add source to this project's library
 add_library (parallel SHARED "parallel.c" "thread.c" "thread_pool.c" "schedule.c")
 add_dependencies(parallel log json array dict sync)
-target_include_directories(parallel PUBLIC ${PARALLEL_INCLUDE_DIR} ${QUEUE_INCLUDE_DIR} ${ARRAY_INCLUDE_DIR} ${DICT_INCLUDE_DIR} ${SYNC_INCLUDE_DIR} ${LOG_INCLUDE_DIR} ${HASH_CACHE_INCLUDE_DIR})
-target_link_libraries(parallel PRIVATE queue log json array dict sync)
+target_include_directories(parallel PUBLIC ${PARALLEL_INCLUDE_DIR} ${ARRAY_INCLUDE_DIR} ${DICT_INCLUDE_DIR} ${SYNC_INCLUDE_DIR} ${LOG_INCLUDE_DIR} ${HASH_CACHE_INCLUDE_DIR})
+target_link_libraries(parallel PRIVATE log json array dict sync)

@@ -39,9 +39,6 @@ void parallel_init ( void )
     // Initialize the dict library
     dict_init();
 
-    // Initialize the queue library
-    queue_init();
-
     // Initialize the json library
     json_init();
 
@@ -99,9 +96,6 @@ void parallel_exit ( void )
 
     // Clean up the dict library
     dict_exit();
-
-    // Initialize the queue library
-    queue_exit();
 
     // Clean up the json library
     json_exit();

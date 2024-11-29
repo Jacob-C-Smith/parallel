@@ -24,9 +24,6 @@
 // dict
 #include <dict/dict.h>
 
-// queue
-#include <queue/queue.h>
-
 // array
 #include <array/array.h>
 
